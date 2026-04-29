@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>小児アセスメント支援</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  background: #f0f0ee;
+  color: #1a1a18;
+  font-size: 15px;
+  line-height: 1.5;
+  padding-bottom: 0;
+}
+.app { max-width: 480px; margin: 0 auto; }
+.progress-bar { height: 3px; background: rgba(255,255,255,0.3); }
+.progress-fill { height: 100%; background: #fff; transition: width 0.4s; }
+.content {
+  padding: 12px 12px calc(72px + env(safe-area-inset-bottom));
+  min-height: 100vh;
+}
+.section { display: none; }
+.section.active { display: block; }
+.card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+.card-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid rgba(0,0,0,0.1); display: flex; padding-bottom: env(safe-area-inset-bottom); z-index: 200; box-shadow: 0 -2px 8px rgba(0,0,0,0.08); }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 2px; border: none; background: transparent; cursor: pointer; min-height: 56px; gap: 3px; color: #999; transition: color 0.15s; font-family: inherit; }
+.nav-btn.active { color: #1D9E75; }
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 10px; font-weight: 600; }
+.age-row { display: flex; gap: 8px; align-items: stretch; }
+.age-box { flex: 1; }
+.age-box label { font-size: 12px; color: #888; font-weight: 500; display: block; margin-bottom: 4px; }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.sbtn { width: 44px; height: 44px; border-radius: 10px; border: 1.5px solid #ddd; background: #f8f8f6; font-size: 22px; font-weight: 300; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; user-select: none; -webkit-user-select: none; transition: background 0.1s; }
+.sbtn:active { background: #e8e8e6; }
+.sval { flex: 1; min-width: 0; font-size: 24px; font-weight: 700; text-align: center; border: none; background: transparent; outline: none; color: #1a1a18; }
+.sval::placeholder { font-size: 18px; font-weight: 400; color: #ccc; }
+.age-stepper .sbtn { width: 40px; height: 40px; font-size: 20px; }
+.age-stepper .sval { font-size: 20px; }
+.range-label { font-size: 11px; margin-top: 4px; line-height: 1.4; }
+.range-ok { color: #1D9E75; }
+.range-warn { color: #d48000; }
+.range-danger { color: #d43434; }
+.range-unknown { color: #aaa; }
+.vital-list { display: flex; flex-direction: column; }
+.vital-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f0ee; gap: 10px; }
+.vr-left { flex: 1; min-width: 0; }
+.vr-label { font-size: 15px; font-weight: 700; color: #1a1a18; }
+.vr-unit { font-size: 12px; color: #888; margin-top: 1px; }
+.vr-left .range-label { margin-top: 3px; font-size: 12px; }
+.vr-stepper { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.vbtn { width: 52px; height: 52px; border-radius: 12px; border: 1.5px solid #ddd; background: #f4f4f2; font-size: 26px; font-weight: 300; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; user-select: none; -webkit-user-select: none; transition: background 0.1s; line-height: 1; }
+.vbtn:active { background: #e4e4e2; }
+.vval { width: 80px; height: 52px; font-size: 26px; font-weight: 700; text-align: center; border: 1.5px solid #ddd; border-radius: 10px; background: #fafaf8; color: #1a1a18; outline: none; -moz-appearance: textfield; }
+.vval::-webkit-inner-spin-button,.vval::-webkit-outer-spin-button { -webkit-appearance: none; }
+.vval::placeholder { font-size: 20px; font-weight: 400; color: #ccc; }
+.vval:focus { border-color: #1D9E75; background: #fff; }
+.pat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.pat-item { border: 2px solid #e8e8e6; border-radius: 12px; padding: 14px 6px; text-align: center; cursor: pointer; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 88px; transition: all 0.15s; }
+.pat-item.ok { border-color: #1D9E75; background: #f0faf5; }
+.pat-item.unclear { border-color: #EF9F27; background: #fffbf0; }
+.pat-item.abnormal { border-color: #E24B4A; background: #fff5f5; }
+.pat-icon { font-size: 26px; }
+.pat-name { font-size: 12px; font-weight: 700; }
+.pat-status { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: #eee; color: #888; font-weight: 600; }
+.pat-item.ok .pat-status { background: #d4f0e0; color: #0a6640; }
+.pat-item.abnormal .pat-status { background: #fde0e0; color: #a32020; }
+.pat-item.unclear .pat-status { background: #fef0d0; color: #8a5000; }
+.pat-detail { display: none; background: #f8f8f6; border-radius: 10px; padding: 12px; margin-top: 8px; }
+.pat-detail.open { display: block; }
+.check-item { display: flex; align-items: center; gap: 12px; padding: 13px 12px; background: #fff; border: 1.5px solid #eee; border-radius: 10px; margin-bottom: 6px; cursor: pointer; min-height: 52px; transition: all 0.1s; }
+.check-item:last-child { margin-bottom: 0; }
+.check-item.checked { border-color: #1D9E75; background: #f0faf5; }
+.check-item input[type=checkbox] { width: 24px; height: 24px; accent-color: #1D9E75; flex-shrink: 0; }
+.check-item label { flex: 1; font-size: 14px; line-height: 1.4; cursor: pointer; }
+.check-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+.badge-warn { background: #fef0d0; color: #8a5000; }
+.badge-danger { background: #fde0e0; color: #a32020; }
+.radio-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.radio-btn { flex: 1; min-width: 70px; padding: 11px 8px; border: 2px solid #ddd; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; cursor: pointer; background: #fff; color: #666; min-height: 46px; display: flex; align-items: center; justify-content: center; transition: all 0.1s; }
+.radio-btn.sel-ok { background: #f0faf5; border-color: #1D9E75; color: #0a6640; }
+.radio-btn.sel-warn { background: #fffbf0; border-color: #EF9F27; color: #8a5000; }
+.radio-btn.sel-danger { background: #fff5f5; border-color: #E24B4A; color: #a32020; }
+.abcde-row { background: #fff; border-radius: 12px; margin-bottom: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.abcde-header { display: flex; align-items: center; gap: 12px; padding: 14px; cursor: pointer; min-height: 64px; }
+.abcde-header:active { background: #f8f8f6; }
+.abcde-letter { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; flex-shrink: 0; }
+.letter-a { background: #d4f0e0; color: #0a6640; }
+.letter-b { background: #d4e8fc; color: #0a4080; }
+.letter-c { background: #fde0e0; color: #a32020; }
+.letter-d { background: #fef0d0; color: #7a4000; }
+.letter-e { background: #e8e0fc; color: #4a30a0; }
+.abcde-info { flex: 1; }
+.abcde-title { font-size: 15px; font-weight: 700; }
+.abcde-subtitle { font-size: 12px; color: #888; margin-top: 1px; }
+.abcde-status-dot { width: 12px; height: 12px; border-radius: 50%; background: #ddd; flex-shrink: 0; }
+.abcde-status-dot.ok { background: #1D9E75; }
+.abcde-status-dot.warn { background: #EF9F27; }
+.abcde-status-dot.danger { background: #E24B4A; }
+.abcde-body { display: none; padding: 4px 14px 14px; background: #f8f8f6; border-top: 1px solid #eee; }
+.abcde-body.open { display: block; }
+.sub-section { margin-top: 12px; }
+.sub-title { font-size: 12px; font-weight: 700; color: #666; margin-bottom: 6px; }
+.sample-item { background: #fff; border-radius: 12px; margin-bottom: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.sample-header { display: flex; align-items: center; gap: 10px; padding: 14px; cursor: pointer; min-height: 58px; }
+.sample-header:active { background: #f8f8f6; }
+.sample-letter { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; background: #d4f0e0; color: #0a6640; flex-shrink: 0; }
+.sample-body { display: none; padding: 10px 14px 14px; background: #f8f8f6; border-top: 1px solid #eee; }
+.sample-body.open { display: block; }
+.sample-body .hint-text { font-size: 12px; color: #888; margin-bottom: 8px; line-height: 1.5; }
+.sample-body textarea { width: 100%; min-height: 80px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 14px; background: #fff; color: #1a1a18; resize: vertical; font-family: inherit; }
+.family-tip { background: #e8f4ff; border-left: 3px solid #3a8fd4; border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 10px; }
+.family-tip .tip-title { font-size: 11px; font-weight: 700; color: #2060a0; margin-bottom: 4px; }
+.family-tip p { font-size: 13px; color: #1a4080; line-height: 1.6; }
+.abuse-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; background: #fff; margin-bottom: 6px; min-height: 58px; transition: all 0.1s; }
+.abuse-item:last-of-type { margin-bottom: 0; }
+.abuse-item.flagged { background: #fff5f5; border-color: #E24B4A; }
+.abuse-item input[type=checkbox] { width: 24px; height: 24px; accent-color: #E24B4A; flex-shrink: 0; margin-top: 1px; }
+.abuse-item-title { font-size: 14px; font-weight: 600; }
+.abuse-item-sub { font-size: 12px; color: #888; margin-top: 2px; }
+.abuse-alert { background: #fff0f0; border: 1.5px solid #f09090; border-radius: 10px; padding: 14px; margin-top: 10px; display: none; }
+.abuse-alert.show { display: block; }
+.abuse-alert-title { font-size: 14px; font-weight: 700; color: #a32020; margin-bottom: 6px; }
+.abuse-alert-body { font-size: 13px; color: #7a1010; line-height: 1.7; }
+.summary-alert { border-radius: 10px; padding: 14px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px; }
+.alert-critical { background: #fff0f0; border: 1.5px solid #f09090; }
+.alert-warn { background: #fffbf0; border: 1.5px solid #f0c060; }
+.alert-ok { background: #f0faf5; border: 1.5px solid #80d4a8; }
+.alert-icon { font-size: 22px; flex-shrink: 0; }
+.alert-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+.alert-critical .alert-title { color: #a32020; }
+.alert-warn .alert-title { color: #8a5000; }
+.alert-ok .alert-title { color: #0a6640; }
+.alert-body { font-size: 13px; color: #555; line-height: 1.5; }
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.summary-cell { background: #f8f8f6; border-radius: 8px; padding: 10px; }
+.summary-cell .s-label { font-size: 10px; color: #888; font-weight: 600; margin-bottom: 3px; }
+.summary-cell .s-value { font-size: 14px; font-weight: 700; }
+.cl-ok { color: #1D9E75; }
+.cl-warn { color: #d48000; }
+.cl-danger { color: #d43434; }
+.cl-none { color: #bbb; }
+.checklist-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0ee; font-size: 14px; }
+.checklist-row:last-child { border-bottom: none; }
+.cl-name { color: #666; }
+.cl-val { font-weight: 700; }
+.action-btn { display: block; width: 100%; padding: 15px; background: #1D9E75; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; font-family: inherit; transition: background 0.1s; }
+.action-btn:active { background: #158060; }
+.action-btn.secondary { background: #f0f0ee; color: #555; border: 1.5px solid #ddd; }
+.action-btn.secondary:active { background: #e4e4e2; }
+.alert-box { border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 13px; line-height: 1.6; font-weight: 500; }
+.alert-box-warn { background: #fffbf0; color: #8a5000; }
+.alert-box-danger { background: #fff0f0; color: #a32020; }
+.dis-cat-label { font-size: 12px; font-weight: 700; color: #888; padding: 8px 0 8px; border-bottom: 1px solid #e8e8e6; margin-bottom: 8px; }
+.dis-item { background: #fff; border-radius: 12px; margin-bottom: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.dis-header { display: flex; align-items: center; gap: 12px; padding: 14px; cursor: pointer; min-height: 62px; }
+.dis-header:active { background: #f8f8f6; }
+.dis-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; }
+.dis-title-block { flex: 1; }
+.dis-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.dis-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.dtag { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
+.dtag-a { background: #d4f0e0; color: #0a6640; }
+.dtag-b { background: #d4e8fc; color: #0a4080; }
+.dtag-c { background: #fde0e0; color: #a32020; }
+.dtag-d { background: #e8e0fc; color: #4a30a0; }
+.dtag-ok { background: #d4f0e0; color: #0a6640; }
+.dtag-warn { background: #fef0d0; color: #8a5000; }
+.dtag-danger { background: #fde0e0; color: #a32020; }
+.dis-arrow { font-size: 14px; color: #bbb; transition: transform 0.2s; }
+.dis-arrow.open { transform: rotate(180deg); }
+.dis-body { display: none; padding: 0 14px 14px; background: #f8f8f6; border-top: 1px solid #eee; }
+.dis-body.open { display: block; }
+.dis-section { margin-top: 12px; }
+.dis-sec-title { font-size: 12px; font-weight: 700; color: #666; margin-bottom: 6px; }
+.dis-text { font-size: 13px; color: #333; line-height: 1.7; }
+.dis-list { padding-left: 16px; }
+.dis-list li { font-size: 13px; color: #333; line-height: 1.9; }
+.dis-alert-box { border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 13px; line-height: 1.6; font-weight: 600; }
+.dis-alert-warn { background: #fffbf0; color: #8a5000; }
+.dis-alert-danger { background: #fff0f0; color: #a32020; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="content">
+
+  <!-- PAT法 -->
+  <div class="section active" id="tab-pat">
+    <div class="card">
+      <div class="card-title">年齢区分</div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">
+        <div class="vital-box" style="flex:1">
+          <label style="font-size:12px;color:#888;font-weight:500;display:block;margin-bottom:4px">年齢（歳）</label>
+          <div class="stepper age-stepper">
+            <button class="sbtn" ontouchstart="" onclick="stepAge('ageYears',-1)">−</button>
+            <input class="sval" type="number" id="ageYears" min="0" max="15" placeholder="0" oninput="calcAgeGroup()">
+            <button class="sbtn" ontouchstart="" onclick="stepAge('ageYears',1)">＋</button>
+          </div>
+        </div>
+        <div class="vital-box" style="flex:1">
+          <label style="font-size:12px;color:#888;font-weight:500;display:block;margin-bottom:4px">月齢（ヶ月）</label>
+          <div class="stepper age-stepper">
+            <button class="sbtn" ontouchstart="" onclick="stepAge('ageMonths',-1)">−</button>
+            <input class="sval" type="number" id="ageMonths" min="0" max="11" placeholder="0" oninput="calcAgeGroup()">
+            <button class="sbtn" ontouchstart="" onclick="stepAge('ageMonths',1)">＋</button>
+          </div>
+        </div>
+        <div style="flex:1.4;background:#f5f5f3;border-radius:10px;padding:12px;align-self:stretch;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:11px;color:#6b6b68;margin-bottom:4px">区分</div>
+          <div style="font-size:14px;font-weight:600;color:#1a1a18;line-height:1.3" id="age-group-label">—</div>
+        </div>
+      </div>
+      <div id="age-info" style="display:none;font-size:12px;color:#6b6b68;background:#f5f5f3;border-radius:8px;padding:10px;line-height:1.6"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">PAT法（接触時評価）</div>
+      <p style="font-size:12px;color:#6b6b68;margin-bottom:12px;line-height:1.6">接触直後に数秒で行う視覚・聴覚的評価。</p>
+      <div class="pat-grid">
+        <div class="pat-item" id="pat-A" onclick="togglePat('A')">
+          <div class="pat-icon">👁</div>
+          <div class="pat-name">外観</div>
+          <div class="pat-status" id="pat-A-status">未評価</div>
+        </div>
+        <div class="pat-item" id="pat-B" onclick="togglePat('B')">
+          <div class="pat-icon">💨</div>
+          <div class="pat-name">呼吸状態</div>
+          <div class="pat-status" id="pat-B-status">未評価</div>
+        </div>
+        <div class="pat-item" id="pat-C" onclick="togglePat('C')">
+          <div class="pat-icon">🩸</div>
+          <div class="pat-name">皮膚循環</div>
+          <div class="pat-status" id="pat-C-status">未評価</div>
+        </div>
+      </div>
+      
+      <div class="pat-detail" id="pat-A-detail">
+        <div class="sub-title">外観の観察項目</div>
+        <div class="check-item"><input type="checkbox" id="pA1"><label for="pA1">活動性の低下（ぐったり・無反応）</label><span class="check-badge badge-danger">要注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pA2"><label for="pA2">視線が合わない・あやせない</label><span class="check-badge badge-danger">要注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pA3"><label for="pA3">筋緊張の低下</label><span class="check-badge badge-warn">注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pA4"><label for="pA4">啼泣が弱い・異常</label><span class="check-badge badge-warn">注意</span></div>
+        <div style="margin-top:10px">
+          <div class="sub-title">総合評価</div>
+          <div class="radio-group" id="pat-A-radio">
+            <span class="radio-btn" onclick="selectPat('A','ok',this)">正常</span>
+            <span class="radio-btn" onclick="selectPat('A','warn',this)">要注意</span>
+            <span class="radio-btn" onclick="selectPat('A','danger',this)">異常</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pat-detail" id="pat-B-detail">
+        <div class="sub-title">呼吸状態の観察項目</div>
+        <div class="check-item"><input type="checkbox" id="pB1"><label for="pB1">呼吸数の異常（速い・遅い）</label><span class="check-badge badge-warn">注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pB2"><label for="pB2">呼吸努力の増加（陥没・鼻翼呼吸）</label><span class="check-badge badge-danger">要注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pB3"><label for="pB3">騒がしい呼吸音（喘鳴・犬吠様）</label><span class="check-badge badge-warn">注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pB4"><label for="pB4">頭部の上下・首振り呼吸</label><span class="check-badge badge-danger">要注意</span></div>
+        <div style="margin-top:10px">
+          <div class="sub-title">総合評価</div>
+          <div class="radio-group" id="pat-B-radio">
+            <span class="radio-btn" onclick="selectPat('B','ok',this)">正常</span>
+            <span class="radio-btn" onclick="selectPat('B','warn',this)">要注意</span>
+            <span class="radio-btn" onclick="selectPat('B','danger',this)">異常</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pat-detail" id="pat-C-detail">
+        <div class="sub-title">皮膚循環の観察項目</div>
+        <div class="check-item"><input type="checkbox" id="pC1"><label for="pC1">蒼白・チアノーゼ</label><span class="check-badge badge-danger">要注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pC2"><label for="pC2">まだら模様（ショック強く疑う）</label><span class="check-badge badge-danger">要注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pC3"><label for="pC3">冷汗・湿潤</label><span class="check-badge badge-warn">注意</span></div>
+        <div class="check-item"><input type="checkbox" id="pC4"><label for="pC4">明らかな出血・外傷</label><span class="check-badge badge-warn">注意</span></div>
+        <div style="margin-top:10px">
+          <div class="sub-title">総合評価</div>
+          <div class="radio-group" id="pat-C-radio">
+            <span class="radio-btn" onclick="selectPat('C','ok',this)">正常</span>
+            <span class="radio-btn" onclick="selectPat('C','warn',this)">要注意</span>
+            <span class="radio-btn" onclick="selectPat('C','danger',this)">異常</span>
+          </div>
+        </div>
+      </div>
+      <div id="pat-intervention" style="display:none;margin-top:10px;background:#FCEBEB;border-radius:8px;padding:12px;border:0.5px solid #F09595">
+        <div style="font-size:13px;font-weight:500;color:#A32D2D;margin-bottom:4px">PAT不良 → 即時介入を検討</div>
+        <div style="font-size:12px;color:#791F1F;line-height:1.5">酸素投与・BVM換気を実施。同時に迅速な搬送準備を行う。</div>
+      </div>
+    </div>
+    <div style="margin-top:8px"><button class="action-btn" onclick="showTab('vital',document.getElementById('nav-vital'))">次へ：バイタル →</button></div>
+  </div>
+
+  <!-- バイタルサイン -->
+  <div class="section" id="tab-vital">
+    <div class="card">
+      <div class="card-title">バイタルサイン入力</div>
+      <div style="font-size:13px;color:#6b6b68;margin-bottom:12px;line-height:1.5">⚠ 可能な限り小児を泣かせないよう配慮。啼泣中の値は参考値として扱う。</div>
+      <input type="hidden" id="ageGroup">
+      <div id="vital-note" style="font-size:12px;color:#6b6b68;background:#f5f5f3;border-radius:8px;padding:10px;margin-bottom:12px;line-height:1.6;display:none"></div>
+      <div class="vital-list">
+        <div class="vital-row">
+          <div class="vr-left"><div class="vr-label">呼吸数</div><div class="vr-unit">回/分</div><div class="range-label" id="rr-label"><span class="range-unknown">年齢を入力</span></div></div>
+          <div class="vr-stepper">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('rr',-1)">−</button>
+            <input class="vval" type="number" id="rr" placeholder="—" oninput="updateVitals()">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('rr',1)">＋</button>
+          </div>
+        </div>
+        <div class="vital-row">
+          <div class="vr-left"><div class="vr-label">心拍数</div><div class="vr-unit">回/分</div><div class="range-label" id="hr-label"><span class="range-unknown">年齢を入力</span></div></div>
+          <div class="vr-stepper">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('hr',-1)">−</button>
+            <input class="vval" type="number" id="hr" placeholder="—" oninput="updateVitals()">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('hr',1)">＋</button>
+          </div>
+        </div>
+        <div class="vital-row">
+          <div class="vr-left"><div class="vr-label">収縮期血圧</div><div class="vr-unit">mmHg</div><div class="range-label" id="sbp-label"><span class="range-unknown">年齢を入力</span></div></div>
+          <div class="vr-stepper">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('sbp',-1)">−</button>
+            <input class="vval" type="number" id="sbp" placeholder="—" oninput="updateVitals()">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('sbp',1)">＋</button>
+          </div>
+        </div>
+        <div class="vital-row">
+          <div class="vr-left"><div class="vr-label">SpO₂</div><div class="vr-unit">%</div><div class="range-label" id="spo2-label"><span class="range-unknown">正常 ≥95%</span></div></div>
+          <div class="vr-stepper">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('spo2',-1)">−</button>
+            <input class="vval" type="number" id="spo2" placeholder="—" oninput="updateVitals()">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('spo2',1)">＋</button>
+          </div>
+        </div>
+        <div class="vital-row">
+          <div class="vr-left"><div class="vr-label">体温</div><div class="vr-unit">℃</div><div class="range-label" id="temp-label"><span class="range-unknown">正常 36.5〜37.5</span></div></div>
+          <div class="vr-stepper">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('temp',-0.1)">−</button>
+            <input class="vval" type="number" step="0.1" id="temp" placeholder="—" oninput="updateVitals()">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('temp',0.1)">＋</button>
+          </div>
+        </div>
+        <div class="vital-row" style="border-bottom:none">
+          <div class="vr-left"><div class="vr-label">CRT</div><div class="vr-unit">秒</div><div class="range-label" id="crt-label"><span class="range-unknown">正常 ≤2秒</span></div></div>
+          <div class="vr-stepper">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('crt',-0.5)">−</button>
+            <input class="vval" type="number" step="0.5" id="crt" placeholder="—" oninput="updateVitals()">
+            <button class="vbtn" ontouchstart="" onclick="stepVal('crt',0.5)">＋</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="action-btn secondary" style="flex:0 0 60px;padding:15px 0;font-size:22px;font-weight:300" onclick="showTab('pat',document.getElementById('nav-pat'))">←</button><button class="action-btn" style="flex:1" onclick="showTab('abcde',document.getElementById('nav-abcde'))">次へ：1次評価 →</button></div>
+  </div>
+
+  <!-- ABCDE -->
+  <div class="section" id="tab-abcde">
+    <div class="card">
+      <div class="card-title">1次評価（ABCDEアプローチ）</div>
+      <div class="abcde-list">
+        <div class="abcde-row">
+          <div class="abcde-header" onclick="toggleAbcde('a')">
+            <div class="abcde-letter letter-a">A</div>
+            <div class="abcde-info"><div class="abcde-title">気道（Airway）</div><div class="abcde-subtitle">開通・維持・閉塞の分類</div></div>
+            <div class="abcde-status-dot" id="dot-a"></div>
+          </div>
+          <div class="abcde-body" id="body-a">
+            <div class="sub-section">
+              <div class="sub-title">気道の状態</div>
+              <div class="radio-group">
+                <span class="radio-btn" onclick="selectAbcde('a','ok',this)">開通している</span>
+                <span class="radio-btn" onclick="selectAbcde('a','warn',this)">維持できる</span>
+                <span class="radio-btn" onclick="selectAbcde('a','danger',this)">維持できない</span>
+              </div>
+            </div>
+            <div style="background:#FAEEDA;border-radius:8px;padding:10px;margin-top:8px;font-size:12px;color:#854F0B;line-height:1.5">気道維持できない場合：最高緊急度。用手的気道確保・BVMを迷わず実施。</div>
+          </div>
+        </div>
+        <div class="abcde-row">
+          <div class="abcde-header" onclick="toggleAbcde('b')">
+            <div class="abcde-letter letter-b">B</div>
+            <div class="abcde-info"><div class="abcde-title">呼吸（Breathing）</div><div class="abcde-subtitle">窮迫→不全の進行を見逃さない</div></div>
+            <div class="abcde-status-dot" id="dot-b"></div>
+          </div>
+          <div class="abcde-body" id="body-b">
+            <div class="sub-section">
+              <div class="sub-title">呼吸努力</div>
+              <div class="radio-group">
+                <span class="radio-btn" onclick="selectAbcde('b','ok',this)">正常</span>
+                <span class="radio-btn" onclick="selectAbcde('b','warn',this)">呼吸窮迫</span>
+                <span class="radio-btn" onclick="selectAbcde('b','danger',this)">呼吸不全</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="abcde-row">
+          <div class="abcde-header" onclick="toggleAbcde('c')">
+            <div class="abcde-letter letter-c">C</div>
+            <div class="abcde-info"><div class="abcde-title">循環（Circulation）</div><div class="abcde-subtitle">代償性/低血圧性ショックを早期発見</div></div>
+            <div class="abcde-status-dot" id="dot-c"></div>
+          </div>
+          <div class="abcde-body" id="body-c">
+            <div class="sub-section">
+              <div class="sub-title">循環評価</div>
+              <div class="radio-group">
+                <span class="radio-btn" onclick="selectAbcde('c','ok',this)">正常</span>
+                <span class="radio-btn" onclick="selectAbcde('c','warn',this)">代償性ショック疑い</span>
+                <span class="radio-btn" onclick="selectAbcde('c','danger',this)">低血圧性ショック</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="abcde-row">
+          <div class="abcde-header" onclick="toggleAbcde('d')">
+            <div class="abcde-letter letter-d">D</div>
+            <div class="abcde-info"><div class="abcde-title">意識（Disability）</div><div class="abcde-subtitle">AVPU法＋瞳孔評価</div></div>
+            <div class="abcde-status-dot" id="dot-d"></div>
+          </div>
+          <div class="abcde-body" id="body-d">
+            <div class="sub-section">
+              <div class="sub-title">AVPU法</div>
+              <div class="radio-group">
+                <span class="radio-btn" onclick="selectAbcde('d','ok',this)">A：覚醒</span>
+                <span class="radio-btn" onclick="selectAbcde('d','warn',this)">V：呼びかけに反応</span>
+                <span class="radio-btn" onclick="selectAbcde('d','warn',this)">P：痛みに反応</span>
+                <span class="radio-btn" onclick="selectAbcde('d','danger',this)">U：無反応</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="abcde-row">
+          <div class="abcde-header" onclick="toggleAbcde('e')">
+            <div class="abcde-letter letter-e">E</div>
+            <div class="abcde-info"><div class="abcde-title">外表・体温（Exposure）</div><div class="abcde-subtitle">全身観察・発疹・外傷・体温</div></div>
+            <div class="abcde-status-dot" id="dot-e"></div>
+          </div>
+          <div class="abcde-body" id="body-e">
+            <div class="sub-section">
+              <div class="sub-title">総合</div>
+              <div class="radio-group">
+                <span class="radio-btn" onclick="selectAbcde('e','ok',this)">異常なし</span>
+                <span class="radio-btn" onclick="selectAbcde('e','warn',this)">要注意所見あり</span>
+                <span class="radio-btn" onclick="selectAbcde('e','danger',this)">重篤所見あり</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="action-btn secondary" style="flex:0 0 60px;padding:15px 0;font-size:22px;font-weight:300" onclick="showTab('vital',document.getElementById('nav-vital'))">←</button><button class="action-btn" style="flex:1" onclick="showTab('sample',document.getElementById('nav-sample'))">次へ：2次評価 →</button></div>
+  </div>
+
+  <!-- SAMPLE -->
+  <div class="section" id="tab-sample">
+    <div class="card">
+      <div class="card-title">2次評価 — SAMPLE問診</div>
+      <div class="family-tip">
+        <div class="tip-title">家族対応のポイント</div>
+        <p>保護者は「第二の傷病者」として捉える。観察・処置への協力を依頼する。</p>
+      </div>
+      <div class="sample-item">
+        <div class="sample-header" onclick="toggleSample('s')">
+          <div class="sample-letter">S</div>
+          <div style="flex:1;font-size:14px;font-weight:600">症状と徴候</div>
+          <div style="font-size:14px;color:#bbb">▼</div>
+        </div>
+        <div class="sample-body" id="s-body">
+          <div class="hint-text">主訴、発症様式、経過、随伴症状を聴取</div>
+          <textarea placeholder="例：昨夜から発熱、今朝から意識がぼんやりしている"></textarea>
+        </div>
+      </div>
+      <div class="sample-item">
+        <div class="sample-header" onclick="toggleSample('a')">
+          <div class="sample-letter" style="background:#FAEEDA;color:#854F0B">A</div>
+          <div style="flex:1;font-size:14px;font-weight:600">アレルギー</div>
+          <div style="font-size:14px;color:#bbb">▼</div>
+        </div>
+        <div class="sample-body" id="a-body">
+          <textarea placeholder="例：ペニシリン系アレルギーあり、食物アレルギーなし"></textarea>
+        </div>
+      </div>
+      <div class="sample-item">
+        <div class="sample-header" onclick="toggleSample('m')">
+          <div class="sample-letter" style="background:#E6F1FB;color:#185FA5">M</div>
+          <div style="flex:1;font-size:14px;font-weight:600">服薬歴</div>
+          <div style="font-size:14px;color:#bbb">▼</div>
+        </div>
+        <div class="sample-body" id="m-body">
+          <textarea placeholder="例：気管支拡張薬（吸入）使用中"></textarea>
+        </div>
+      </div>
+      <div class="sample-item">
+        <div class="sample-header" onclick="toggleSample('p')">
+          <div class="sample-letter" style="background:#EEEDFE;color:#534AB7">P</div>
+          <div style="flex:1;font-size:14px;font-weight:600">既往歴</div>
+          <div style="font-size:14px;color:#bbb">▼</div>
+        </div>
+        <div class="sample-body" id="p-body">
+          <textarea placeholder="例：3ヶ月前に気管支炎で入院歴あり"></textarea>
+        </div>
+      </div>
+      <div class="sample-item">
+        <div class="sample-header" onclick="toggleSample('l')">
+          <div class="sample-letter" style="background:#EAF3DE;color:#3B6D11">L</div>
+          <div style="flex:1;font-size:14px;font-weight:600">最終飲食</div>
+          <div style="font-size:14px;color:#bbb">▼</div>
+        </div>
+        <div class="sample-body" id="l-body">
+          <textarea placeholder="例：2時間前に母乳、その後嘔吐1回あり"></textarea>
+        </div>
+      </div>
+      <div class="sample-item">
+        <div class="sample-header" onclick="toggleSample('e2')">
+          <div class="sample-letter" style="background:#FAECE7;color:#993C1D">E</div>
+          <div style="flex:1;font-size:14px;font-weight:600">現病歴・環境</div>
+          <div style="font-size:14px;color:#bbb">▼</div>
+        </div>
+        <div class="sample-body" id="e2-body">
+          <textarea placeholder="例：保育園で嘔吐下痢流行中"></textarea>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title" style="color:#A32D2D">虐待スクリーニング</div>
+      <div class="abuse-check">
+        <div class="abuse-item" onclick="toggleAbuse(this)"><input type="checkbox"><div class="abuse-item-text"><div class="abuse-item-title">不自然な外傷の分布・受傷機転との不一致</div><div class="abuse-item-sub">説明と合わない傷の場所・形状</div></div></div>
+        <div class="abuse-item" onclick="toggleAbuse(this)"><input type="checkbox"><div class="abuse-item-text"><div class="abuse-item-title">受傷から救急要請まで不自然に時間が経過</div><div class="abuse-item-sub">遅延した通報</div></div></div>
+        <div class="abuse-item" onclick="toggleAbuse(this)"><input type="checkbox"><div class="abuse-item-text"><div class="abuse-item-title">保護者が小児に関心を示さない・視線を合わせない</div><div class="abuse-item-sub">異常な養育態度</div></div></div>
+        <div class="abuse-item" onclick="toggleAbuse(this)"><input type="checkbox"><div class="abuse-item-text"><div class="abuse-item-title">子どもが保護者の顔色を常に窺う様子</div><div class="abuse-item-sub">過度な緊張・萎縮</div></div></div>
+        <div class="abuse-item" onclick="toggleAbuse(this)"><input type="checkbox"><div class="abuse-item-text"><div class="abuse-item-title">繰り返される救急要請</div><div class="abuse-item-sub">同一傷病者への頻回要請</div></div></div>
+        <div class="abuse-item" onclick="toggleAbuse(this)"><input type="checkbox"><div class="abuse-item-text"><div class="abuse-item-title">現場環境の異常（極端な散乱・生活感がない）</div><div class="abuse-item-sub">ネグレクトの可能性</div></div></div>
+      </div>
+      <div class="abuse-alert" id="abuse-alert">
+        <div class="abuse-alert-title">虐待が疑われます — 対応フロー</div>
+        <div class="abuse-alert-body">① 個人で完結させず、所属・地域プロトコルに従う<br>② 搬送先医療機関に虐待の疑いを申し送る<br>③ 必要に応じて児童相談所・警察と連携<br>④ 現場の記録を詳細に残す</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="action-btn secondary" style="flex:0 0 60px;padding:15px 0;font-size:22px;font-weight:300" onclick="showTab('abcde',document.getElementById('nav-abcde'))">←</button><button class="action-btn" style="flex:1" onclick="showTab('summary',document.getElementById('nav-summary'))">次へ：総合評価 →</button></div>
+  </div>
+
+  <!-- 総合評価 -->
+  <div class="section" id="tab-summary">
+    <div class="card">
+      <div class="card-title">総合評価サマリー</div>
+      <div id="summary-alert"></div>
+      <div class="summary-grid">
+        <div class="summary-cell"><div class="s-label">PAT（外観）</div><div class="s-value cl-none" id="sum-patA">未評価</div></div>
+        <div class="summary-cell"><div class="s-label">PAT（呼吸）</div><div class="s-value cl-none" id="sum-patB">未評価</div></div>
+        <div class="summary-cell"><div class="s-label">PAT（循環）</div><div class="s-value cl-none" id="sum-patC">未評価</div></div>
+        <div class="summary-cell"><div class="s-label">気道（A）</div><div class="s-value cl-none" id="sum-a">未評価</div></div>
+        <div class="summary-cell"><div class="s-label">呼吸（B）</div><div class="s-value cl-none" id="sum-b">未評価</div></div>
+        <div class="summary-cell"><div class="s-label">循環（C）</div><div class="s-value cl-none" id="sum-c">未評価</div></div>
+        <div class="summary-cell"><div class="s-label">意識（D）</div><div class="s-value cl-none" id="sum-d">未評価</div></div>
+        <div class="summary-cell"><div class="s-label">外表（E）</div><div class="s-value cl-none" id="sum-e">未評価</div></div>
+      </div>
+      <div>
+        <div class="card-title" style="margin-bottom:8px">バイタルサイン</div>
+        <div class="checklist-row"><span class="cl-name">呼吸数</span><span class="cl-val" id="sum-rr">—</span></div>
+        <div class="checklist-row"><span class="cl-name">心拍数</span><span class="cl-val" id="sum-hr">—</span></div>
+        <div class="checklist-row"><span class="cl-name">収縮期血圧</span><span class="cl-val" id="sum-sbp">—</span></div>
+        <div class="checklist-row"><span class="cl-name">SpO₂</span><span class="cl-val" id="sum-spo2">—</span></div>
+        <div class="checklist-row"><span class="cl-name">体温</span><span class="cl-val" id="sum-temp">—</span></div>
+        <div class="checklist-row"><span class="cl-name">CRT</span><span class="cl-val" id="sum-crt">—</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">臨床推論のポイント</div>
+      <div style="font-size:13px;color:#6b6b68;line-height:1.7" id="reasoning-text">各評価を入力すると、ここに臨床推論の視点が表示されます。</div>
+    </div>
+    <button class="action-btn secondary" onclick="resetAll()">評価をリセット</button>
+  </div>
+
+</div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-pat" onclick="showTab('pat',this)"><span class="nav-icon">👁</span><span class="nav-label">PAT法</span></button>
+  <button class="nav-btn" id="nav-vital" onclick="showTab('vital',this)"><span class="nav-icon">💓</span><span class="nav-label">バイタル</span></button>
+  <button class="nav-btn" id="nav-abcde" onclick="showTab('abcde',this)"><span class="nav-icon">🔍</span><span class="nav-label">1次評価</span></button>
+  <button class="nav-btn" id="nav-sample" onclick="showTab('sample',this)"><span class="nav-icon">📋</span><span class="nav-label">2次評価</span></button>
+  <button class="nav-btn" id="nav-summary" onclick="showTab('summary',this)"><span class="nav-icon">📊</span><span class="nav-label">総合</span></button>
+</nav>
+<script>function stepVal(id, delta) {
+  const el = document.getElementById(id);
+  const cur = parseFloat(el.value) || 0;
+  const decimals = Math.abs(delta) < 1 ? 1 : 0;
+  el.value = Math.max(0, cur + delta).toFixed(decimals);
+  el.dispatchEvent(new Event('input'));
+}
+function stepAge(id, delta) {
+  const el = document.getElementById(id);
+  const max = id === 'ageMonths' ? 11 : 15;
+  const cur = parseInt(el.value) || 0;
+  el.value = Math.max(0, Math.min(max, cur + delta));
+  calcAgeGroup();
+}
+const patState = { A: null, B: null, C: null };
+const abcdeState = { a: null, b: null, c: null, d: null, e: null };
+const vitalRanges = {
+  neonate: { rr:[40,60], hr:[100,160], sbp:[60,90], note:'新生児：体温調節が未熟。啼泣で容易にバイタルが変動。' },
+  infant:  { rr:[30,60], hr:[100,160], sbp:[70,100], note:'乳児：哺乳状況・活動性が重要な指標。' },
+  toddler: { rr:[24,40], hr:[90,150], sbp:[80,110], note:'幼児前期：分離不安あり。親の存在が評価の安定に有効。' },
+  preschool:{ rr:[22,34], hr:[80,140], sbp:[80,110], note:'幼児後期：言葉でのコミュニケーション可能。' },
+  school:  { rr:[18,30], hr:[70,120], sbp:[90,120], note:'学童：成人に近い値。ただし基準は成人と異なる。' }
+};
+function showTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'summary') updateSummary();
+  window.scrollTo(0, 0);
+}
+let openPat = null;
+function togglePat(key) {
+  const d = document.getElementById('pat-' + key + '-detail');
+  if (openPat === key) { d.classList.remove('open'); openPat = null; }
+  else {
+    if (openPat) document.getElementById('pat-' + openPat + '-detail').classList.remove('open');
+    d.classList.add('open'); openPat = key;
+  }
+}
+function selectPat(key, level, el) {
+  document.getElementById('pat-' + key + '-radio').querySelectorAll('.radio-btn').forEach(b => b.className = 'radio-btn');
+  el.className = 'radio-btn sel-' + level;
+  patState[key] = level;
+  const item = document.getElementById('pat-' + key);
+  const status = document.getElementById('pat-' + key + '-status');
+  if(level==='ok'){status.textContent='正常';item.className='pat-item ok';}
+  else if(level==='warn'){status.textContent='要注意';item.className='pat-item unclear';}
+  else{status.textContent='異常';item.className='pat-item abnormal';}
+  const hasAbnormal = Object.values(patState).some(v => v === 'danger' || v === 'warn');
+  document.getElementById('pat-intervention').style.display = hasAbnormal ? 'block' : 'none';
+}
+function toggleAbcde(key) { document.getElementById('body-' + key).classList.toggle('open'); }
+function selectAbcde(key, level, el) {
+  el.closest('.radio-group').querySelectorAll('.radio-btn').forEach(b => b.classList.remove('sel-ok','sel-warn','sel-danger'));
+  el.classList.add('sel-' + level);
+  abcdeState[key] = level;
+  document.getElementById('dot-' + key).className = 'abcde-status-dot ' + level;
+}
+function toggleSample(key) { document.getElementById(key + '-body').classList.toggle('open'); }
+function toggleAbuse(item) {
+  const cb = item.querySelector('input[type=checkbox]');
+  cb.checked = !cb.checked;
+  item.classList.toggle('flagged', cb.checked);
+  document.getElementById('abuse-alert').classList.toggle('show', document.querySelectorAll('.abuse-item input:checked').length > 0);
+}
+document.addEventListener('change', function(e) {
+  if (e.target.type === 'checkbox' && e.target.closest('.check-item')) {
+    e.target.closest('.check-item').classList.toggle('checked', e.target.checked);
+  }
+});
+function updateVitals() {
+  const age = document.getElementById('ageGroup').value;
+  const note = document.getElementById('vital-note');
+  if (age && vitalRanges[age]) {
+    const r = vitalRanges[age];
+    note.style.display = 'block'; note.textContent = r.note;
+    evalVital('rr', r.rr[0], r.rr[1], '回/分', 'rr-label');
+    evalVital('hr', r.hr[0], r.hr[1], '回/分', 'hr-label');
+    evalVital('sbp', r.sbp[0], r.sbp[1], 'mmHg', 'sbp-label');
+  } else { note.style.display = 'none'; }
+  evalSpo2(); evalTemp(); evalCrt();
+}
+function evalVital(id, lo, hi, unit, labelId) {
+  const val = parseFloat(document.getElementById(id).value);
+  const label = document.getElementById(labelId);
+  const range = `正常：${lo}〜${hi}${unit}`;
+  if (isNaN(val)) { label.innerHTML = `<span class="range-unknown">${range}</span>`; return; }
+  label.innerHTML = (val < lo || val > hi)
+    ? `<span class="range-danger">⚠ ${range}（現在：${val}）</span>`
+    : `<span class="range-ok">✓ ${range}</span>`;
+}
+function evalSpo2() {
+  const val = parseFloat(document.getElementById('spo2').value);
+  const label = document.getElementById('spo2-label');
+  if (isNaN(val)) { label.innerHTML = '<span class="range-unknown">正常：≥95%</span>'; return; }
+  if (val < 90) label.innerHTML = '<span class="range-danger">⚠ 重篤な低酸素（≥95%が正常）</span>';
+  else if (val < 95) label.innerHTML = '<span class="range-warn">注意：やや低下（≥95%が正常）</span>';
+  else label.innerHTML = '<span class="range-ok">✓ 正常範囲（≥95%）</span>';
+}
+function evalTemp() {
+  const val = parseFloat(document.getElementById('temp').value);
+  const label = document.getElementById('temp-label');
+  if (isNaN(val)) { label.innerHTML = '<span class="range-unknown">正常：36.5〜37.5℃</span>'; return; }
+  if (val >= 39) label.innerHTML = '<span class="range-danger">⚠ 高熱（≥39℃）</span>';
+  else if (val >= 38) label.innerHTML = '<span class="range-warn">注意：発熱（38℃台）</span>';
+  else if (val < 36) label.innerHTML = '<span class="range-danger">⚠ 低体温（<36℃）</span>';
+  else label.innerHTML = '<span class="range-ok">✓ 正常範囲</span>';
+}
+function evalCrt() {
+  const val = parseFloat(document.getElementById('crt').value);
+  const label = document.getElementById('crt-label');
+  if (isNaN(val)) { label.innerHTML = '<span class="range-unknown">正常：≤2秒</span>'; return; }
+  label.innerHTML = val > 2 ? '<span class="range-danger">⚠ 延長（>2秒）循環障害を疑う</span>' : '<span class="range-ok">✓ 正常（≤2秒）</span>';
+}
+function statusText(val) {
+  if (!val) return ['未評価','cl-none'];
+  if (val==='ok') return ['正常','cl-ok'];
+  if (val==='warn') return ['要注意','cl-warn'];
+  return ['異常・重篤','cl-danger'];
+}
+function updateSummary() {
+  ['A','B','C'].forEach((k,i) => {
+    const [t,c] = statusText(patState[k]);
+    const el = document.getElementById(['sum-patA','sum-patB','sum-patC'][i]);
+    el.textContent = t; el.className = 's-value ' + c;
+  });
+  ['a','b','c','d','e'].forEach(k => {
+    const [t,c] = statusText(abcdeState[k]);
+    const el = document.getElementById('sum-' + k);
+    el.textContent = t; el.className = 's-value ' + c;
+  });
+  ['rr','hr','sbp','spo2','temp','crt'].forEach(id => {
+    const val = document.getElementById(id).value;
+    const unit = {rr:'回/分',hr:'回/分',sbp:'mmHg',spo2:'%',temp:'℃',crt:'秒'}[id];
+    document.getElementById('sum-' + id).textContent = val ? val + unit : '—';
+  });
+  const hasDanger = Object.values(patState).includes('danger') || Object.values(abcdeState).includes('danger');
+  const hasWarn = Object.values(patState).includes('warn') || Object.values(abcdeState).includes('warn');
+  const alertDiv = document.getElementById('summary-alert');
+  if (hasDanger) {
+    alertDiv.innerHTML = `<div class="summary-alert alert-critical"><div class="alert-icon">🔴</div><div><div class="alert-title">緊急対応が必要</div><div class="alert-body">重篤な異常所見が確認されています。迅速な搬送と医師への早期申し送りを実施してください。</div></div></div>`;
+  } else if (hasWarn) {
+    alertDiv.innerHTML = `<div class="summary-alert alert-warn"><div class="alert-icon">🟡</div><div><div class="alert-title">注意が必要な所見あり</div><div class="alert-body">要注意所見が確認されています。継続的な観察と状態の変化に注意してください。</div></div></div>`;
+  } else {
+    alertDiv.innerHTML = `<div class="summary-alert alert-ok"><div class="alert-icon">🟢</div><div><div class="alert-title">明らかな異常なし</div><div class="alert-body">現時点で重篤な所見は確認されていません。継続観察を行ってください。</div></div></div>`;
+  }
+  const reasons = [];
+  if (abcdeState.a === 'danger') reasons.push('気道維持不能：最優先介入が必要です。');
+  if (abcdeState.b === 'danger') reasons.push('呼吸不全：BVM換気の準備を。');
+  if (abcdeState.c === 'danger') reasons.push('低血圧性ショック：早急な輸液路確保を検討。');
+  if (abcdeState.d !== 'ok' && abcdeState.d) reasons.push('意識障害：A・B・Cのトラブルによる二次的変化を先に除外する。');
+  if (reasons.length === 0) reasons.push('年齢・発達段階・バイタルサイン・症状の経過・現場状況を総合的に解釈してください。');
+  document.getElementById('reasoning-text').innerHTML = reasons.map(r => `• ${r}`).join('<br>');
+}
+function calcAgeGroup() {
+  const years = parseInt(document.getElementById('ageYears').value) || 0;
+  const months = parseInt(document.getElementById('ageMonths').value) || 0;
+  const totalMonths = years * 12 + months;
+  let group = '', groupLabel = '—';
+  const notes = {
+    neonate: '新生児（0〜1ヶ月）：体温調節が未熟。',
+    infant:  '乳児（1〜12ヶ月）：哺乳状況・活動性が重要。',
+    toddler: '幼児前期（1〜2歳）：誤飲・誤嚥のリスクが高い。',
+    preschool:'幼児後期（3〜5歳）：熱性痙攣の好発年齢。',
+    school:  '学童（6〜12歳）：成人に近い値。'
+  };
+  const labels = { neonate:'新生児（0〜1ヶ月）', infant:'乳児（1〜12ヶ月）', toddler:'幼児前期（1〜2歳）', preschool:'幼児後期（3〜5歳）', school:'学童（6〜12歳）' };
+  if (document.getElementById('ageYears').value === '' && months === 0) { group = ''; }
+  else if (totalMonths <= 1) { group = 'neonate'; }
+  else if (totalMonths <= 12) { group = 'infant'; }
+  else if (totalMonths <= 24) { group = 'toddler'; }
+  else if (totalMonths <= 60) { group = 'preschool'; }
+  else { group = 'school'; }
+  document.getElementById('ageGroup').value = group;
+  groupLabel = group ? labels[group] : '—';
+  document.getElementById('age-group-label').textContent = groupLabel;
+  const info = document.getElementById('age-info');
+  if (group && notes[group]) { info.style.display = 'block'; info.textContent = notes[group]; }
+  else { info.style.display = 'none'; }
+  updateVitals();
+}
+function resetAll() {
+  Object.keys(patState).forEach(k => patState[k] = null);
+  Object.keys(abcdeState).forEach(k => abcdeState[k] = null);
+  ['A','B','C'].forEach(k => {
+    document.getElementById('pat-' + k).className = 'pat-item';
+    document.getElementById('pat-' + k + '-status').textContent = '未評価';
+    document.getElementById('pat-' + k + '-detail').classList.remove('open');
+  });
+  ['a','b','c','d','e'].forEach(k => {
+    document.getElementById('body-' + k).classList.remove('open');
+    document.getElementById('dot-' + k).className = 'abcde-status-dot';
+  });
+  document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.abuse-item').forEach(i => i.classList.remove('flagged'));
+  document.getElementById('abuse-alert').classList.remove('show');
+  document.querySelectorAll('.radio-btn').forEach(b => b.className = 'radio-btn');
+  document.querySelectorAll('textarea').forEach(t => t.value = '');
+  ['rr','hr','sbp','spo2','temp','crt'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ageYears').value = '';
+  document.getElementById('ageMonths').value = '';
+  document.getElementById('ageGroup').value = '';
+  document.getElementById('age-group-label').textContent = '—';
+  document.getElementById('age-info').style.display = 'none';
+  document.getElementById('vital-note').style.display = 'none';
+  document.getElementById('pat-intervention').style.display = 'none';
+  openPat = null;
+  showTab('pat', document.getElementById('nav-pat'));
+}
+</script></body></html>

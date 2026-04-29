@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#b91c1c"/>
+<title>Obs Emergency PRO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#ffffff;--bg2:#f8fafc;--bg3:#f1f5f9;
+  --text:#0f172a;--text2:#64748b;--text3:#94a3b8;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.2);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"SF Mono","Fira Code",monospace;
+  --radius-md:8px;--radius-lg:14px;--radius-xl:20px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1e293b;--bg2:#0f172a;--bg3:#020617;
+    --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+  }
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);font-size:16px;}
+.app{height:100vh;height:100dvh;display:flex;flex-direction:column;max-width:640px;margin:0 auto;position:relative;}
+.nav{background:var(--bg);border-bottom:0.5px solid var(--border);display:flex;flex-shrink:0;}
+.nav button{flex:1;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;border:none;cursor:pointer;background:none;border-bottom:2px solid transparent;color:var(--text2);transition:all .2s;font-family:var(--font);}
+.nav button.active{color:#dc2626;border-bottom-color:#dc2626;background:rgba(220,38,38,0.04);}
+.main{flex:1;overflow-y:auto;padding:14px 14px 140px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch;}
+.card{background:var(--bg);border-radius:var(--radius-xl);padding:18px;border:0.5px solid var(--border);}
+.label{font-size:9px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.14em;font-family:var(--mono);}
+.weeks-num{font-size:50px;font-weight:700;line-height:1;color:var(--text);}
+.weeks-unit{font-size:18px;color:var(--text3);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+input[type=date],input[type=number]{
+  width:100%;padding:10px 12px;background:var(--bg2);
+  border:0.5px solid var(--border);border-radius:var(--radius-md);
+  font-size:12px;font-weight:600;outline:none;color:var(--text);
+  font-family:var(--font);
+}
+input[type=date]:focus,input[type=number]:focus{border-color:#dc2626;}
+input[type=number]{text-align:center;font-size:28px;padding:14px;font-family:var(--mono);}
+input[type=range]{width:100%;height:6px;border-radius:3px;appearance:none;outline:none;border:none;background:var(--bg3);}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+#rangeW::-webkit-slider-thumb{background:#dc2626;}
+#rangeD::-webkit-slider-thumb{background:#2563eb;}
+.si-box{padding:14px 18px;border-radius:var(--radius-lg);display:flex;justify-content:space-between;align-items:center;background:var(--bg2);transition:background .4s;}
+.si-box.danger{background:#fef2f2;}
+.si-num{font-size:38px;font-weight:700;font-family:var(--mono);}
+.sym-group{display:flex;flex-direction:column;gap:7px;}
+.sym-group-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.16em;display:flex;align-items:center;gap:5px;font-family:var(--mono);}
+.sym-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-radius:var(--radius-lg);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;text-align:left;transition:all .15s;font-family:var(--font);}
+.sym-btn:active{transform:scale(0.98);}
+.sym-btn.on-red{background:#fff5f5;border-color:#f87171;color:#991b1b;}
+.sym-btn.on-blue{background:#eff6ff;border-color:#60a5fa;color:#1e3a8a;}
+.sym-btn.on-purple{background:#faf5ff;border-color:#c084fc;color:#581c87;}
+.sym-btn.on-orange{background:#fff7ed;border-color:#fb923c;color:#7c2d12;}
+.sym-label{font-size:12px;font-weight:600;display:block;color:inherit;}
+.sym-sub{font-size:10px;opacity:0.6;display:block;margin-top:2px;font-weight:500;}
+.check-icon{width:20px;height:20px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.facility-card{padding:18px 22px;border-radius:22px;border-left:8px solid;display:flex;flex-direction:column;gap:6px;transition:all .4s;}
+.facility-name{font-size:18px;font-weight:700;line-height:1.3;}
+.facility-reason{font-size:12px;font-weight:500;opacity:0.85;}
+.redflag-card{background:#fff5f5;border-radius:20px;padding:14px;border:0.5px solid #fca5a5;}
+.redflag-item{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--bg);padding:11px 13px;border-radius:11px;border:0.5px solid #fca5a5;font-size:13px;font-weight:600;color:#7f1d1d;cursor:pointer;margin-bottom:5px;transition:all .15s;font-family:var(--font);}
+.redflag-item:active{transform:scale(0.98);}
+.watchlist-item{border-radius:var(--radius-lg);border:1.5px solid var(--border);overflow:hidden;margin-bottom:6px;transition:border-color .2s;}
+.watchlist-item.active{border-color:#ef4444;}
+.watchlist-header{width:100%;display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:none;border:none;cursor:pointer;text-align:left;font-family:var(--font);}
+.watchlist-dot{width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.watchlist-dot.active{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5);}
+.watchlist-detail{padding:12px 14px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+.detail-sec{border-radius:10px;padding:10px 12px;}
+.ref-card{background:var(--bg);border-radius:var(--radius-xl);padding:16px;border:0.5px solid var(--border);margin-bottom:12px;}
+.ref-title{font-size:15px;font-weight:700;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;}
+.footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;display:flex;border-top:0.5px solid rgba(255,255,255,0.15);z-index:120;transition:background .4s;padding-bottom:env(safe-area-inset-bottom);}
+.footer-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px 14px;}
+.footer-item:first-child{border-right:0.5px solid rgba(255,255,255,0.15);}
+.footer-sublabel{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;opacity:0.5;margin-bottom:3px;font-family:var(--mono);}
+.footer-value{font-size:13px;font-weight:600;color:#fff;}
+.period-badge{padding:5px 11px;border-radius:11px;font-size:11px;font-weight:700;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="nav" id="nav">
+    <button class="active" onclick="switchTab('assessment',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      観察 / 入力
+    </button>
+    <button onclick="switchTab('reasoning',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      推論 / 判定
+    </button>
+    <button onclick="switchTab('reference',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      資料 / 解説
+    </button>
+  </div>
+  <div class="main" id="main-content"></div>
+  <div class="footer" id="footer" style="background:#1e293b;">
+    <div class="footer-item">
+      <div class="footer-sublabel">Positioning</div>
+      <div class="footer-value" id="footer-pos">通常体位</div>
+    </div>
+    <div class="footer-item">
+      <div class="footer-sublabel">Shock Index</div>
+      <div class="footer-value" id="footer-si">--</div>
+    </div>
+  </div>
+</div>
+<script>var state={
+  weeks:28,days:0,lmp:'',edc:'',hr:'',sbp:'',
+  tab:'assessment',openDisease:null,
+  symptoms:{
+    boardLikeRigidity:false,continuousPain:false,periodicPain:false,epigastricPain:false,
+    painlessBleeding:false,bleedingWithPain:false,rupture:false,prolapseSensation:false,
+    seizure:false,visualDisturbance:false,headache:false,coldSweat:false,dyspnea:false,fetalMovementReduced:false,
+    nauseaVomiting:false,jaundice:false,dehydration:false
+  }
+};
+
+var diseases=[
+  {id:'abortion',name:'流産・切迫流産',range:[2,22],pathology:'妊娠22週未満に妊娠が中断される状態。母体の大出血が救急上の課題となる。',findings:'下腹部痛、性器出血（鮮血・凝血塊）。週数が進むほど出血リスク増大。',action:'出血量・バイタル確認。SI上昇時は迅速な搬送が必要。'},
+  {id:'cervical_shock',name:'子宮頸部ショック',range:[2,22],pathology:'流産時などに内容物が子宮頸管に嵌入し、迷走神経刺激によりショックを来す。',findings:'下腹部痛、出血。迷走神経反射による「徐脈」と「血圧低下」が特徴。',action:'内容物除去が必要。体位調整と速やかな搬送。'},
+  {id:'hyperemesis',name:'つわり・妊娠悪阻',range:[4,14],pathology:'hCG上昇等による消化器症状。重症化すると脱水やケトーシスを来す。',findings:'頻回な嘔吐、体重減少、皮膚の乾燥（脱水）。',action:'脱水の評価。ビタミンB1を含む輸液が必須。'},
+  {id:'ectopic',name:'異所性妊娠',range:[0,11],pathology:'子宮体部以外への着床。卵管破裂時は腹腔内大量出血でショックとなる。',findings:'下腹部痛、不正出血。破裂時はSI上昇、冷汗。',action:'緊急手術が可能な医療機関への最優先搬送。'},
+  {id:'incompetence',name:'子宮頸管無力症',range:[12,37],pathology:'無痛性に頸管が開大し、胎胞が脱出する早産の主要原因。',findings:'自覚症状は少ないが、脱出感や帯下の増加。',action:'絶対安静。腹圧をかけない水平保持での搬送。'},
+  {id:'hellp_syndrome',name:'HELLP症候群',range:[27,39],pathology:'溶血、肝酵素上昇、血小板減少。診断遅延は肝破裂を招く極めて危険な状態。',findings:'心窩部痛（胃痛と誤認しやすい）、右季肋部痛、悪心、黄疸。',action:'迅速な妊娠終結（ターミネーション）が必要。総合周産期センターへ。'},
+  {id:'placenta_previa',name:'前置胎盤',range:[24,39],pathology:'胎盤が子宮口を覆う。突然の大出血（警告出血）リスクがある。',findings:'無痛性の突発的な鮮血。',action:'【内診厳禁】大出血を誘発する。安静を保ち帝王切開可能施設へ。'},
+  {id:'eclampsia',name:'子癇',range:[20,42],pathology:'妊娠20週以降の痙攣。脳出血を合併しやすく、母体死亡リスクが高い。',findings:'強直性・間代性痙攣。前駆症状に頭痛、視覚障害。',action:'気道確保、吸引。刺激回避（遮光・静音）し緊急搬送。'},
+  {id:'hdp_logic',name:'妊娠高血圧症候群 (HDP)',range:[20,42],pathology:'高血圧を主症状とする。脳出血、腎不全、胎盤剥離の原因となる。',findings:'sBP 140以上、重い頭痛、目がチカチカする。',action:'安静、刺激回避。高次施設への搬送。'},
+  {id:'pa_logic',name:'常位胎盤早期剥離',range:[22,42],pathology:'分娩前に胎盤が剥がれ、母体DICと胎児死亡を招く緊急事態。',findings:'持続的腹痛、板状硬、SI上昇、胎動消失。',action:'最優先搬送。総合周産期センターが第一選択。'},
+  {id:'afe_logic',name:'羊水塞栓症',range:[36,42],pathology:'羊水成分による激しいショック・肺塞栓・DIC。',findings:'突然の呼吸困難、心肺停止、さらさらした止まらない出血。',action:'心肺蘇生対応。大量輸血体制のある施設へ。'}
+];
+
+function getSI(){var h=parseFloat(state.hr),s=parseFloat(state.sbp);return(h&&s)?(h/s):null;}
+
+function getLogic(){
+  var w=state.weeks,s=state.symptoms,si=getSI(),sbp=parseFloat(state.sbp),hr=parseFloat(state.hr);
+  var redFlags=[];
+  var facility={level:'一般産科 / 救急',reason:'通常リスク',bg:'#f1f5f9',color:'#334155',border:'#94a3b8'};
+  var pos={label:'通常体位',strict:false};
+  if(w>=20)pos={label:'左側臥位 厳守',strict:true};
+  else if(w>=12)pos={label:'左側臥位 推奨',strict:false};
+  if(w<22)facility={level:'一般病院（母体救急）',reason:'流産期。母体救命を優先。',bg:'#f1f5f9',color:'#334155',border:'#94a3b8'};
+  else if(w<28)facility={level:'総合周産期センター',reason:'超早産期。高次施設が必須。',bg:'#fef2f2',color:'#991b1b',border:'#ef4444'};
+  else if(w<34)facility={level:'地域・総合周産期',reason:'早産期。NICU管理。',bg:'#eff6ff',color:'#1e40af',border:'#3b82f6'};
+  else facility={level:'一般産科・地域周産期',reason:'正期産。成熟児対応。',bg:'#f0fdf4',color:'#166534',border:'#22c55e'};
+  if(s.boardLikeRigidity||(s.continuousPain&&si&&si>=1.0))redFlags.push({name:'常位胎盤早期剥離',id:'pa_logic'});
+  if(w>=24&&s.epigastricPain)redFlags.push({name:'HELLP症候群 疑い',id:'hellp_syndrome'});
+  if(s.painlessBleeding&&w>=24)redFlags.push({name:'前置胎盤 (警告出血)',id:'placenta_previa'});
+  if(s.seizure)redFlags.push({name:'子癇',id:'eclampsia'});
+  if(s.visualDisturbance||(s.headache&&sbp>=160))redFlags.push({name:'重症妊娠高血圧症 (脳出血リスク)',id:'hdp_logic'});
+  if(s.prolapseSensation&&w<37)redFlags.push({name:'子宮頸管無力症',id:'incompetence'});
+  if(s.bleedingWithPain&&w<22)redFlags.push({name:'流産・切迫流産',id:'abortion'});
+  if(hr<60&&s.bleedingWithPain&&w<22)redFlags.push({name:'子宮頸部ショック',id:'cervical_shock'});
+  if(s.dyspnea&&w>=34)redFlags.push({name:'羊水塞栓症 疑い',id:'afe_logic'});
+  if(s.fetalMovementReduced)redFlags.push({name:'胎児機能不全 疑い',id:'pa_logic'});
+  if(redFlags.length>0)facility={level:'高次医療機関（緊急搬送）',reason:'緊急疾患の徴候あり：周産期センターを選定してください。',bg:'#dc2626',color:'#ffffff',border:'#991b1b'};
+  return{facility,redFlags,pos};
+}
+
+function getPeriodLabel(){var w=state.weeks;if(w<22)return'流産期';if(w<37)return'早産期';return'正期産';}
+
+function switchTab(tab,btn){
+  state.tab=tab;
+  document.querySelectorAll('.nav button').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  render();
+}
+
+function toggleSymptom(id){state.symptoms[id]=!state.symptoms[id];render();}
+
+function openDisease(id){
+  state.openDisease=state.openDisease===id?null:id;
+  render();
+  setTimeout(function(){var el=document.getElementById('disease-'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},100);
+}
+
+function updateFromLMP(v){
+  state.lmp=v;state.edc='';
+  if(v){var today=new Date();today.setHours(0,0,0,0);var lmp=new Date(v);var diff=Math.floor((today-lmp)/86400000);if(diff>=0&&diff<=300){state.weeks=Math.floor(diff/7);state.days=diff%7;}}
+  render();
+}
+
+function updateFromEDC(v){
+  state.edc=v;state.lmp='';
+  if(v){var today=new Date();today.setHours(0,0,0,0);var edc=new Date(v);var diff=280-Math.floor((edc-today)/86400000);if(diff>=0&&diff<=300){state.weeks=Math.floor(diff/7);state.days=diff%7;}}
+  render();
+}
+
+function renderAssessment(){
+  var periodBg=state.weeks<22?'#fef2f2':state.weeks<37?'#eff6ff':'#f0fdf4';
+  var periodColor=state.weeks<22?'#991b1b':state.weeks<37?'#1e40af':'#166534';
+  var si=getSI();var siVal=si?si.toFixed(2):'--';var siDanger=si&&si>1.0;
+  var symGroups=[
+    {color:'#dc2626',label:'Pain (痛み・張り)',colorClass:'red',items:[
+      {id:'boardLikeRigidity',label:'板状硬（カチカチに硬い）',sub:'常位胎盤早期剥離'},
+      {id:'continuousPain',label:'持続的な激しい腹痛',sub:'早期剥離・AFLP・子宮外破裂'},
+      {id:'periodicPain',label:'周期的な下腹部痛',sub:'切迫早産・陣痛'},
+      {id:'epigastricPain',label:'心窩部痛（みぞおちの痛み）',sub:'HELLP症候群・子癇前駆'}
+    ]},
+    {color:'#2563eb',label:'Fluid (出血・膣内)',colorClass:'blue',items:[
+      {id:'painlessBleeding',label:'無痛性の突発的な出血（鮮血）',sub:'前置胎盤（警告出血）'},
+      {id:'bleedingWithPain',label:'痛みのある性器出血',sub:'流産・常位胎盤早期剥離'},
+      {id:'rupture',label:'破水感（生温かい水が出る）',sub:'切迫早産・AFE'},
+      {id:'prolapseSensation',label:'膣内の脱出感・帯下増',sub:'子宮頸管無力症・胎胞脱出'}
+    ]},
+    {color:'#7c3aed',label:'Systemic (全身・神経・胎児)',colorClass:'purple',items:[
+      {id:'seizure',label:'痙攣（子癇）',sub:'HDP重症合併症'},
+      {id:'visualDisturbance',label:'目がチカチカする（視覚障害）',sub:'子癇前駆・脳出血リスク'},
+      {id:'headache',label:'重い頭痛',sub:'HDP重症化サイン'},
+      {id:'coldSweat',label:'冷汗・顔面蒼白',sub:'ショック状態'},
+      {id:'dyspnea',label:'突然の呼吸困難・心肺停止',sub:'羊水塞栓症の疑い'},
+      {id:'fetalMovementReduced',label:'胎動の減少・消失',sub:'胎児機能不全の最重要サイン'}
+    ]},
+    {color:'#ea580c',label:'Digestion (消化器)',colorClass:'orange',items:[
+      {id:'nauseaVomiting',label:'激しい悪心・嘔吐',sub:'妊娠悪阻・HELLP症候群'},
+      {id:'jaundice',label:'黄疸（白目が黄色い）',sub:'HELLP・AFLP（重症肝障害）'},
+      {id:'dehydration',label:'口渇・皮膚の乾燥',sub:'脱水徴候'}
+    ]}
+  ];
+  var h='';
+  h+='<div class="card">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:0.5px solid var(--border);padding-bottom:14px;margin-bottom:14px;">';
+  h+='<div><div class="label" style="margin-bottom:5px;">Pregnancy Period</div>';
+  h+='<div style="display:flex;align-items:baseline;gap:4px;">';
+  h+='<span class="weeks-num">'+state.weeks+'</span><span class="weeks-unit">w</span>';
+  h+='<span class="weeks-num" style="margin-left:6px;">'+state.days+'</span><span class="weeks-unit">d</span></div></div>';
+  h+='<div class="period-badge" style="background:'+periodBg+';color:'+periodColor+';">'+getPeriodLabel()+'</div>';
+  h+='</div>';
+  h+='<div class="grid2" style="margin-bottom:14px;">';
+  h+='<div><div class="label" style="margin-bottom:4px;">LMP（最終月経）</div><input type="date" value="'+state.lmp+'" onchange="updateFromLMP(this.value)"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">EDC（出産予定日）</div><input type="date" value="'+state.edc+'" onchange="updateFromEDC(this.value)"/></div>';
+  h+='</div>';
+  h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span class="label">Manual Adjust</span><span class="label" style="color:var(--text);">'+state.weeks+'w '+state.days+'d</span></div>';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span class="label" style="width:12px;">W</span><input id="rangeW" type="range" min="0" max="42" value="'+state.weeks+'" oninput="state.weeks=parseInt(this.value);render();" style="flex:1;"/></div>';
+  h+='<div style="display:flex;align-items:center;gap:10px;"><span class="label" style="width:12px;">D</span><input id="rangeD" type="range" min="0" max="6" value="'+state.days+'" oninput="state.days=parseInt(this.value);render();" style="flex:1;"/></div>';
+  h+='</div>';
+  h+='<div class="card">';
+  h+='<div class="label" style="margin-bottom:12px;">Vital Signs</div>';
+  h+='<div class="grid2" style="margin-bottom:12px;">';
+  h+='<div><div class="label" style="margin-bottom:4px;">Heart Rate</div><input type="number" value="'+state.hr+'" placeholder="---" oninput="state.hr=this.value;render();"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">sBP (mmHg)</div><input type="number" value="'+state.sbp+'" placeholder="---" oninput="state.sbp=this.value;render();"/></div>';
+  h+='</div>';
+  h+='<div class="si-box'+(siDanger?' danger':'')+'"><div><div class="label" style="margin-bottom:3px;">Shock Index</div><div class="si-num" style="color:'+(siDanger?'#dc2626':'var(--text)')+'">'+siVal+'</div></div>';
+  if(siDanger)h+='<div style="font-size:12px;font-weight:600;color:#dc2626;background:#fff;padding:8px 11px;border-radius:8px;border:0.5px solid #fca5a5;text-align:right;">Emergency<br>Warning</div>';
+  h+='</div></div>';
+  h+='<div class="card">';
+  h+='<div class="label" style="margin-bottom:14px;">Clinical Signs Checklist</div>';
+  symGroups.forEach(function(g){
+    h+='<div class="sym-group" style="margin-bottom:18px;">';
+    h+='<div class="sym-group-title" style="color:'+g.color+';margin-bottom:6px;">'+g.label+'</div>';
+    g.items.forEach(function(item){
+      var on=state.symptoms[item.id];
+      h+='<button class="sym-btn'+(on?' on-'+g.colorClass:'')+'" onclick="toggleSymptom(\''+item.id+'\')">';
+      h+='<div><span class="sym-label">'+item.label+'</span><span class="sym-sub">'+item.sub+'</span></div>';
+      if(on)h+='<div class="check-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
+      h+='</button>';
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+function renderReasoning(){
+  var logic=getLogic();var f=logic.facility;var h='';
+  h+='<div class="facility-card" style="background:'+f.bg+';color:'+f.color+';border-color:'+f.border+';">';
+  h+='<div style="display:flex;align-items:center;gap:12px;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+  h+='<div class="facility-name">'+f.level+'</div></div>';
+  h+='<div class="facility-reason">'+f.reason+'</div></div>';
+  if(logic.redFlags.length>0){
+    h+='<div class="redflag-card">';
+    h+='<div class="label" style="color:#dc2626;margin-bottom:8px;">⚠ 警戒疾患（タップで詳細へ）</div>';
+    logic.redFlags.forEach(function(rf){
+      h+='<div class="redflag-item" onclick="state.openDisease=\''+rf.id+'\';render();setTimeout(function(){var el=document.getElementById(\'disease-'+rf.id+'\');if(el)el.scrollIntoView({behavior:\'smooth\',block:\'center\'});},150);">'+rf.name;
+      h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>';
+    });
+    h+='</div>';
+  }
+  h+='<div class="card">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:0.5px solid var(--border);padding-bottom:10px;margin-bottom:10px;">';
+  h+='<div class="label">Watchlist</div>';
+  h+='<span style="font-size:10px;font-weight:600;color:#2563eb;background:#eff6ff;padding:3px 10px;border-radius:20px;">'+state.weeks+'週 '+state.days+'日</span>';
+  h+='</div>';
+  diseases.forEach(function(d){
+    var isActive=state.weeks>=d.range[0]&&state.weeks<=d.range[1];
+    var isOpen=state.openDisease===d.id;
+    h+='<div class="watchlist-item'+(isActive?' active':'')+'" id="disease-'+d.id+'">';
+    h+='<div class="watchlist-header" onclick="openDisease(\''+d.id+'\')">';
+    h+='<div style="display:flex;align-items:center;gap:8px;">';
+    h+='<div class="watchlist-dot'+(isActive?' active':'')+'"></div>';
+    h+='<span style="font-size:13px;font-weight:600;color:'+(isActive?'#7f1d1d':'var(--text2)')+'">'+d.name+'</span></div>';
+    h+=isOpen?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+    h+='</div>';
+    if(isOpen){
+      h+='<div class="watchlist-detail">';
+      h+='<div class="detail-sec" style="background:var(--bg2);"><div class="label" style="margin-bottom:3px;">Pathology</div><div style="font-size:12px;font-weight:500;line-height:1.6;color:var(--text);">'+d.pathology+'</div></div>';
+      h+='<div class="detail-sec" style="background:#fff5f5;border:0.5px solid #fca5a5;"><div class="label" style="margin-bottom:3px;color:#dc2626;">Findings（所見）</div><div style="font-size:12px;font-weight:500;line-height:1.6;color:#7f1d1d;">'+d.findings+'</div></div>';
+      h+='<div class="detail-sec" style="background:#eff6ff;border:0.5px solid #93c5fd;"><div class="label" style="margin-bottom:3px;color:#1d4ed8;">EMS Action（対応）</div><div style="font-size:12px;font-weight:500;line-height:1.6;color:#1e3a8a;">'+d.action+'</div></div>';
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+function renderReference(){
+  return'<div class="ref-card">'+
+  '<div class="ref-title" style="color:#1d4ed8;">📋 母子手帳の確認ポイント</div>'+
+  '<div style="background:#eff6ff;border-radius:12px;padding:14px;border:0.5px solid #bfdbfe;display:flex;flex-direction:column;gap:10px;">'+
+  [
+    {icon:'📅',label:'妊娠週数・予定日',desc:'分娩予定日と現在の週数を確認。'},
+    {icon:'👶',label:'胎児の人数（単胎/多胎）',desc:'多胎は必ずNICU完備施設へ搬送。'},
+    {icon:'🔄',label:'初産婦・経産婦',desc:'経産婦は搬送中の分娩進行に注意。'},
+    {icon:'🏥',label:'経過異常・かかりつけ病院',desc:'前置胎盤等の既往。主治医へ連絡。'},
+    {icon:'❤️',label:'合併症・既往',desc:'喘息、心疾患、アレルギー等。'}
+  ].map(function(item){
+    return'<div style="display:flex;gap:10px;align-items:flex-start;">'+
+    '<div style="width:30px;height:30px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:0.5px solid #bfdbfe;">'+item.icon+'</div>'+
+    '<div><div style="font-size:12px;font-weight:600;color:#1e3a8a;">'+item.label+'</div>'+
+    '<div style="font-size:11px;color:#3730a3;opacity:0.8;margin-top:2px;">'+item.desc+'</div></div></div>';
+  }).join('')+
+  '</div>'+
+  '<div style="margin-top:12px;background:#fef2f2;border:1.5px dashed #fca5a5;border-radius:10px;padding:12px;">'+
+  '<div style="font-size:12px;font-weight:500;color:#991b1b;line-height:1.6;"><span style="background:#dc2626;color:white;padding:2px 6px;border-radius:4px;font-size:9px;margin-right:6px;">ALERT</span><b>35歳以上</b>は高齢妊娠に分類。HDPや胎盤異常の合併率が高いため注意。</div></div>'+
+  '</div>'+
+  '<div class="ref-card">'+
+  '<div class="ref-title" style="color:#dc2626;">🏥 医療機関の機能解説</div>'+
+  '<div style="display:flex;flex-direction:column;gap:10px;">'+
+  '<div style="background:#fff5f5;border-radius:12px;padding:14px;"><div style="font-size:14px;font-weight:600;color:#991b1b;margin-bottom:6px;">総合周産期母子医療センター</div><div style="font-size:11px;color:var(--text2);line-height:1.6;">MFICUおよびNICUを完備。超早産児や重篤母体合併症に対応する、日本の周産期医療の頂点施設。</div></div>'+
+  '<div style="background:#eff6ff;border-radius:12px;padding:14px;"><div style="font-size:14px;font-weight:600;color:#1e40af;margin-bottom:6px;">地域周産期母子医療センター</div><div style="font-size:11px;color:var(--text2);line-height:1.6;">NICUを完備し、比較高度な周産期医療を担う拠点。総合センターへの橋渡しも行う。</div></div>'+
+  '</div></div>'+
+  '<div class="ref-card">'+
+  '<div class="label" style="margin-bottom:12px;">Specialized Units</div>'+
+  [
+    {unit:'MFICU',desc:'母体・胎児集中治療室。重症妊婦を24時間監視管理。'},
+    {unit:'NICU',desc:'新生児集中治療室。高度な治療を行うユニット。'},
+    {unit:'GCU',desc:'継続保育室。安定した児が退院に向けた管理を受けるユニット。'}
+  ].map(function(u){
+    return'<div style="background:var(--bg2);border-radius:10px;padding:12px;margin-bottom:8px;border:0.5px solid var(--border);">'+
+    '<div style="font-size:12px;font-weight:700;font-family:var(--mono);margin-bottom:4px;color:var(--text);">'+u.unit+'</div>'+
+    '<div style="font-size:11px;color:var(--text2);line-height:1.5;">'+u.desc+'</div></div>';
+  }).join('')+
+  '</div>';
+}
+
+function render(){
+  var logic=getLogic();
+  var main=document.getElementById('main-content');
+  if(state.tab==='assessment')main.innerHTML=renderAssessment();
+  else if(state.tab==='reasoning')main.innerHTML=renderReasoning();
+  else main.innerHTML=renderReference();
+  var pos=logic.pos;
+  var footer=document.getElementById('footer');
+  document.getElementById('footer-pos').textContent=pos.label;
+  var si=getSI();
+  var siEl=document.getElementById('footer-si');
+  siEl.textContent=si?si.toFixed(2):'--';
+  siEl.style.color=si&&si>1.0?'#fca5a5':'#fff';
+  if(pos.strict){footer.style.background='#b91c1c';document.getElementById('footer-pos').style.animation='pulse 1.5s infinite';}
+  else{footer.style.background='#1e293b';document.getElementById('footer-pos').style.animation='none';}
+}
+
+render();
+</script></body></html>
