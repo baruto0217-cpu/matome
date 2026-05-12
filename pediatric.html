@@ -205,8 +205,8 @@ body {
   <!-- PAT法 -->
   <div class="section active" id="tab-pat">
     <div class="card">
-      <div class="card-title">年齢区分</div>
-      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">
+      <div class="card-title">年齢区分 / 体重</div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
         <div class="vital-box" style="flex:1">
           <label style="font-size:12px;color:#888;font-weight:500;display:block;margin-bottom:4px">年齢（歳）</label>
           <div class="stepper age-stepper">
@@ -228,7 +228,23 @@ body {
           <div style="font-size:14px;font-weight:600;color:#1a1a18;line-height:1.3" id="age-group-label">—</div>
         </div>
       </div>
-      <div id="age-info" style="display:none;font-size:12px;color:#6b6b68;background:#f5f5f3;border-radius:8px;padding:10px;line-height:1.6"></div>
+      <!-- 体重入力行 -->
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
+        <div class="vital-box" style="flex:1">
+          <label style="font-size:12px;color:#888;font-weight:500;display:block;margin-bottom:4px">体重（kg）</label>
+          <div class="stepper age-stepper">
+            <button class="sbtn" ontouchstart="" onclick="stepWeight(-0.5)">−</button>
+            <input class="sval" type="number" step="0.5" id="bodyWeight" min="0" max="100" placeholder="—" oninput="calcWeight()">
+            <button class="sbtn" ontouchstart="" onclick="stepWeight(0.5)">＋</button>
+          </div>
+        </div>
+        <div style="flex:2;background:#f5f5f3;border-radius:10px;padding:10px 12px;align-self:stretch;display:flex;flex-direction:column;justify-content:center" id="weight-info-box">
+          <div style="font-size:11px;color:#6b6b68;margin-bottom:3px">標準体重目安</div>
+          <div style="font-size:13px;font-weight:600;color:#1a1a18;line-height:1.4" id="weight-std-label">年齢を入力してください</div>
+        </div>
+      </div>
+      <div id="weight-detail" style="display:none;background:#eef6ff;border-radius:8px;padding:10px 12px;font-size:12px;color:#1a4080;line-height:1.8;border:1px solid #c0d8f8"></div>
+      <div id="age-info" style="display:none;font-size:12px;color:#6b6b68;background:#f5f5f3;border-radius:8px;padding:10px;line-height:1.6;margin-top:6px"></div>
     </div>
     <div class="card">
       <div class="card-title">PAT法（接触時評価）</div>
@@ -823,6 +839,73 @@ function calcAgeGroup() {
   if (group && notes[group]) { info.style.display = 'block'; info.textContent = notes[group]; }
   else { info.style.display = 'none'; }
   updateVitals();
+  calcWeight();
+}
+function stepWeight(delta) {
+  const el = document.getElementById('bodyWeight');
+  const cur = parseFloat(el.value) || 0;
+  el.value = Math.max(0, Math.round((cur + delta) * 10) / 10).toFixed(1);
+  calcWeight();
+}
+function calcWeight() {
+  const years  = parseInt(document.getElementById('ageYears').value) || 0;
+  const months = parseInt(document.getElementById('ageMonths').value) || 0;
+  const totalMonths = years * 12 + months;
+  const wEl   = document.getElementById('bodyWeight');
+  const stdEl = document.getElementById('weight-std-label');
+  const detEl = document.getElementById('weight-detail');
+
+  // 年齢別標準体重の目安（簡易式）
+  // 新生児〜12ヶ月: 出生体重3kg + 月数×0.6 (乳児期)
+  // 1歳以上: 年齢×2 + 8 (Broselow近似)
+  let stdMin, stdMax, stdFormula;
+  if (document.getElementById('ageYears').value === '' && months === 0) {
+    stdEl.textContent = '年齢を入力してください';
+    detEl.style.display = 'none';
+    return;
+  }
+  if (totalMonths <= 1) {
+    stdMin = 2.5; stdMax = 4.0;
+    stdFormula = '新生児：通常 2.5〜4.0 kg';
+  } else if (totalMonths <= 12) {
+    // 月数×0.6 + 3 kg（乳児近似）
+    const est = Math.round((totalMonths * 0.6 + 3) * 10) / 10;
+    stdMin = Math.round((est - 1) * 10) / 10;
+    stdMax = Math.round((est + 1) * 10) / 10;
+    stdFormula = `乳児 ${totalMonths}ヶ月：約 ${est} kg（月数×0.6＋3）`;
+  } else {
+    // 年齢×2 + 8（学童まで適用）
+    const est = years * 2 + 8;
+    stdMin = est - 2; stdMax = est + 3;
+    stdFormula = `年齢×2＋8 = ${est} kg（目安）`;
+  }
+
+  stdEl.textContent = `${stdMin}〜${stdMax} kg`;
+
+  const wVal = parseFloat(wEl.value);
+  if (isNaN(wVal) || wVal <= 0) {
+    // 体重未入力 → 標準体重範囲のみ表示
+    detEl.style.display = 'block';
+    detEl.innerHTML = `📐 ${stdFormula}`;
+    return;
+  }
+
+  // 体重入力あり → 詳細計算
+
+  let diffMsg = '';
+  if (wVal < stdMin) {
+    const pct = Math.round((1 - wVal / ((stdMin+stdMax)/2)) * 100);
+    diffMsg = `<span style="color:#a32020">⚠ 標準より約 ${pct}% 低体重</span>`;
+  } else if (wVal > stdMax) {
+    const pct = Math.round((wVal / ((stdMin+stdMax)/2) - 1) * 100);
+    diffMsg = `<span style="color:#8a5000">⚠ 標準より約 ${pct}% 過体重</span>`;
+  } else {
+    diffMsg = `<span style="color:#0a6640">✓ 標準範囲内</span>`;
+  }
+
+  detEl.style.display = 'block';
+  detEl.innerHTML =
+    `📐 ${stdFormula}　${diffMsg}`;
 }
 function resetAll() {
   Object.keys(patState).forEach(k => patState[k] = null);
@@ -849,6 +932,9 @@ function resetAll() {
   document.getElementById('age-info').style.display = 'none';
   document.getElementById('vital-note').style.display = 'none';
   document.getElementById('pat-intervention').style.display = 'none';
+  document.getElementById('bodyWeight').value = '';
+  document.getElementById('weight-std-label').textContent = '年齢を入力してください';
+  document.getElementById('weight-detail').style.display = 'none';
   openPat = null;
   showTab('pat', document.getElementById('nav-pat'));
 }
