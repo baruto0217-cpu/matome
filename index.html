@@ -50,6 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
 .app-card.pediatric::before{background:linear-gradient(135deg,rgba(29,158,117,0.3),rgba(29,158,117,0.05));}
 .app-card.obstetric::before{background:linear-gradient(135deg,rgba(185,28,28,0.3),rgba(185,28,28,0.05));}
 .app-card.burn::before{background:linear-gradient(135deg,rgba(216,90,48,0.3),rgba(216,90,48,0.05));}
+.app-card.ecg::before{background:linear-gradient(135deg,rgba(29,110,158,0.3),rgba(29,110,158,0.05));}
 .app-card:active::before{opacity:1;}
 .app-card:active{transform:scale(0.96);border-color:rgba(255,255,255,0.2);}
 
@@ -63,6 +64,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
 .app-card.pediatric .app-tag{background:rgba(29,158,117,0.2);color:#64d4a8;}
 .app-card.obstetric .app-tag{background:rgba(185,28,28,0.2);color:#f87171;}
 .app-card.burn .app-tag{background:rgba(216,90,48,0.2);color:#fb923c;}
+.app-card.ecg  .app-tag{background:rgba(29,110,158,0.2);color:#60a5fa;}
 
 .launcher-footer{margin-top:32px;font-size:11px;color:rgba(255,255,255,0.25);text-align:center;padding:0 20px;}
 
@@ -88,6 +90,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
 .frame-header.pediatric{background:#1D9E75;}
 .frame-header.obstetric{background:#b91c1c;}
 .frame-header.burn{background:#7c2d12;}
+.frame-header.ecg{background:#1a4a7c;}
 
 .back-btn{
   width:36px;height:36px;border-radius:50%;
@@ -128,11 +131,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
       <div class="app-desc">妊娠週数・症候・搬送先判定</div>
       <div class="app-tag">OBS EMERGENCY</div>
     </div>
-    <div class="app-card burn" style="grid-column:1/-1" onclick="openApp('burn')">
+    <div class="app-card burn" onclick="openApp('burn')">
       <div class="app-icon">🔥</div>
       <div class="app-name">熱傷面積計算</div>
       <div class="app-desc">ルールオブナイン・ランド・ブラウダー法・BI/PBI算出</div>
       <div class="app-tag">BURN ASSESSMENT</div>
+    </div>
+    <div class="app-card ecg" style="grid-column:1/-1" onclick="openApp('ecg')">
+      <div class="app-icon">🫀</div>
+      <div class="app-name">12誘導心電図 参照</div>
+      <div class="app-desc">ST診断基準・疾患別波形・12誘導マップ・所見→判断・測定プロトコール</div>
+      <div class="app-tag">ECG REFERENCE</div>
     </div>
   </div>
   <div class="launcher-footer">各アプリをタップして起動</div>
@@ -171,11 +180,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
   </div>
 </div>
 
+<!-- 12誘導心電図 -->
+<div class="app-frame" id="frame-ecg">
+  <div class="frame-header ecg">
+    <button class="back-btn" onclick="closeApp()">←</button>
+    <span class="frame-title">12誘導心電図 参照</span>
+  </div>
+  <div class="frame-body">
+    <iframe id="iframe-ecg" src="" title="12誘導心電図 参照アプリ"></iframe>
+  </div>
+</div>
+
 <script>
 const APP_SRCS = {
   pediatric: 'pediatric.html',
   obstetric: 'obstetric.html',
   burn: 'burn.html',
+  ecg: 'ecg.html',
 };
 const loaded = {};
 let current = null;
