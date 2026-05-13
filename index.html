@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="救急支援">
 <meta name="theme-color" content="#1a1a2e">
+<link rel="manifest" href="manifest.json">
 <title>救急アセスメント総合支援</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -227,6 +228,14 @@ function closeApp() {
     document.getElementById('launcher').classList.remove('hidden');
     current = null;
   }, 300);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .catch(err => console.log('SW registration failed:', err));
+  });
 }
 </script>
 </body>
