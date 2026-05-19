@@ -589,9 +589,21 @@ function beat(o={}){
     if(i>=stS&&i<tE){
       const si=i-stS;const ti=Math.max(0,i-stE);
       if(st_type==='rise'){if(i<stE){const sf=si/stLen;y+=Math.abs(st)*(1-sf*.10);}else{y+=Math.abs(st)*.65*(1-ti/t_w)+g(ti,t_w*.5,t_w*.27,Math.abs(t_h));}}
-      else if(st_type==='depress'){if(i<stE){const sf=si/stLen;const drop=1/(1+Math.exp(-18*(sf-0.08)));y-=Math.abs(st)*drop;}else{const base=-Math.abs(st)*Math.pow(1-ti/t_w,1.8);y+=base+g(ti,t_w*.48,t_w*.27,Math.abs(t_h));}}
+      else if(st_type==='depress'){
+        {
+          const tPeak=0.50,tSig=0.21;
+          const tw0=Math.abs(t_h)*Math.exp(-0.5*Math.pow((0-t_w*tPeak)/(t_w*tSig),2));
+          if(i<stE){const sf=si/stLen;y+=-Math.abs(st)+sf*(Math.abs(st)-tw0);}
+          else{const base=-tw0*(1-ti/t_w);y+=base+Math.abs(t_h)*Math.exp(-0.5*Math.pow((ti-t_w*tPeak)/(t_w*tSig),2));}
+        }}
       else if(st_type==='coronary_t'){if(i>=stE){y-=g(ti,t_w*.5,t_w*.26,Math.abs(t_h));}}
-      else if(st_type==='mild_dep'){if(i<stE){const sf=si/stLen;const drop=1/(1+Math.exp(-18*(sf-0.08)));y-=Math.abs(st)*0.5*drop;}else{const base=-Math.abs(st)*0.5*Math.pow(1-ti/t_w,1.8);y+=base+g(ti,t_w*.48,t_w*.27,Math.abs(t_h)*0.55);}}
+      else if(st_type==='mild_dep'){
+        {
+          const tPeak=0.50,tSig=0.21;
+          const tw0=Math.abs(t_h)*0.55*Math.exp(-0.5*Math.pow((0-t_w*tPeak)/(t_w*tSig),2));
+          if(i<stE){const sf=si/stLen;y+=-Math.abs(st)*0.5+sf*(Math.abs(st)*0.5-tw0);}
+          else{const base=-tw0*(1-ti/t_w);y+=base+Math.abs(t_h)*0.55*Math.exp(-0.5*Math.pow((ti-t_w*tPeak)/(t_w*tSig),2));}
+        }}
       else{if(i>=stE){y+=g(ti,t_w*.56,t_w*.26,t_h);}}
     }
     pts.push([x,y]);
@@ -654,7 +666,43 @@ const diseases=[
   {id:'stemi_ant_lat',cat:'ischemia',name:'前壁・高位側壁梗塞',sub:'STEMI — V2〜V6＋Ⅰ・aVL ST上昇（LAD近位部）',tag:'最緊急',tagC:'#fde8e4',tagT:'#791f1f',lbls:[{t:'V2〜V6＋Ⅰ・aVL上昇',c:'#fde8e4',tc:'#791f1f'},{t:'LAD近位部',c:'#fde8e4',tc:'#791f1f'}],gen:()=>mkS(ox=>beat({ox,rr:RR,p_h:2,r_h:8,s_depth:2,t_h:12,st:10,st_type:'rise',q_depth:0,qrs:9,t_w:22})),details:[['特徴','V2〜V6のST上昇に加えてⅠ・aVLにもST上昇（高位側壁関与）'],['aVR','ST上昇→LAD近位部閉塞・左主幹部病変を強く示唆'],['責任血管','LAD（第1対角枝分岐前の近位部閉塞）']]},
   {id:'nstemi',cat:'ischemia',name:'NSTEMI（非ST上昇型急性心筋梗塞）',sub:'ST低下＋正立T波 — 心内膜下虚血・トロポニン上昇',tag:'高緊急',tagC:'#fde8e4',tagT:'#791f1f',lbls:[{t:'ST低下＋正立T波',c:'#daeaff',tc:'#0a3f7f'},{t:'トロポニン上昇',c:'#fde8e4',tc:'#791f1f'}],gen:()=>mkS(ox=>beat({ox,rr:RR,p_h:2.2,r_h:14,s_depth:2,t_h:7,st:6,st_type:'depress',t_w:20})),details:[['定義','ST上昇なし＋トロポニン上昇→NSTEMI'],['ST変化','水平型・下降型ST低下≥0.5mm（J点後80ms計測）'],['T波','ST低下後のT波は正立（上向き）★重要']]},
   {id:'coronary_t',cat:'ischemia',name:'冠性T波（陰性T波）',sub:'発症1週間以上 — 深く対称的な陰性T波',tag:'梗塞慢性期',tagC:'#e8e4fc',tagT:'#2e1e80',lbls:[{t:'深い対称性陰性T波',c:'#e8e4fc',tc:'#2e1e80'},{t:'ST等電位',c:'#e8e4fc',tc:'#2e1e80'}],gen:()=>mkS(ox=>beat({ox,rr:RR,p_h:2,r_h:9,s_depth:1,t_h:10,st_type:'coronary_t',abnq:true,t_w:24})),details:[['特徴','ST上昇が消失し等電位に戻った後、深く対称的な陰性T波が出現'],['時期','発症1週間以上'],['鑑別','「ST低下＋正立T波」（急性期）vs「ST等電位＋陰性T波」（慢性期）']]},
-  {id:'hyperacute',cat:'ischemia',name:'超急性期T波（Hyperacute T）',sub:'梗塞30分以内 — tall T波（見逃し禁止）',tag:'梗塞早期',tagC:'#fffbf0',tagT:'#5a3800',lbls:[{t:'tall T波',c:'#fffbf0',tc:'#5a3800'},{t:'見逃し禁止',c:'#fde8e4',tc:'#791f1f'}],gen:()=>mkS(ox=>beat({ox,rr:RR,p_h:2.2,r_h:11,s_depth:1,t_h:20,st:2,st_type:'rise',t_w:24})),details:[['定義','胸部誘導T波≥1mV（10mm）またはR波の1/2以上（幅広・対称性）'],['タイミング','梗塞30分以内。ST上昇前の最初の変化'],['救急対応','胸痛があれば初回ECG正常でも10分後に再記録']]},
+  {id:'hyperacute',cat:'ischemia',name:'超急性期T波（Hyperacute T）',sub:'梗塞30分以内 — tall T波（見逃し禁止）',tag:'梗塞早期',tagC:'#fffbf0',tagT:'#5a3800',lbls:[{t:'tall T波',c:'#fffbf0',tc:'#5a3800'},{t:'見逃し禁止',c:'#fde8e4',tc:'#791f1f'}],gen:()=>mkS(ox=>beat({ox,rr:RR,p_h:2.2,r_h:11,s_depth:1,t_h:20,st:2,st_type:'rise',t_w:24})),details:[['定義','胸部誘導T波≥1mV（10mm）またはR波の1/2以上（幅広・対称性）'],['タイミング','梗塞30分以内。ST上昇前の最初の変化'],['救急対応','胸痛があれば初回ECG正常でも10分後に再記録']]},,
+
+  {id:'dewinter',cat:'ischemia',name:'de Winter ST/T wave complex',sub:'LAD近位部閉塞 — upsloping ST低下＋高い対称性T波（STEMI等価病変）',
+   tag:'最緊急',tagC:'#fde8e4',tagT:'#791f1f',
+   lbls:[{t:'upsloping ST低下',c:'#daeaff',tc:'#0a3f7f'},{t:'高い対称性T波',c:'#fde8e4',tc:'#791f1f'},{t:'STEMI等価',c:'#fde8e4',tc:'#791f1f'}],
+   gen:()=>{
+     const rr=RR;
+     return mkS(ox=>{
+       const pts=[];
+       for(let i=0;i<rr;i++){
+         let y=0; const x=ox+i;
+         y+=g(i,7,3.2,2.2);
+         const pr=14,qrs=8,qS=pr,qE=pr+qrs;
+         if(i>=qS&&i<qE){
+           const qi=i-qS;
+           y-=g(qi,qrs*.08,qrs*.055,0.5);
+           y+=g(qi,qrs*.42,qrs*.15,11);
+           y-=g(qi,qrs*.72,qrs*.060,3.5);
+         }
+         const stS=qE,t_w=24,stLen=8,tE=stS+stLen+t_w;
+         if(i>=stS&&i<tE){
+           const si=i-stS;
+           const ti=Math.max(0,i-(stS+stLen));
+           if(i<stS+stLen){
+             const sf=si/stLen;
+             y-=3.5*(1-sf);
+           } else {
+             const base=-3.5*Math.pow(1-ti/t_w,2)*0.08;
+             y+=base+g(ti,t_w*.48,t_w*.22,17);
+           }
+         }
+         pts.push([x,y]);
+       }
+       return pts;
+     });
+   },
+   details:[['定義','1〜3mmのupsloping型ST低下＋左右対称の高いT波（V1〜V6）。aVR ST上昇を伴う'],['責任血管','LAD近位部（前下行枝近位部）閉塞。STEMIと同等の緊急対応が必要'],['超急性期T波との違い','超急性期T波：ST上昇あり / de Winter：ST低下（J点が下がりながらT波へ上昇）'],['見落とし注意','ST上昇がないためSTEMIと認識されにくい。全前壁梗塞の2%程度に出現'],['救急対応','即時カテーテル室への搬送。Door-to-balloon 90分以内を目標'],['aVR所見','aVR ST上昇を伴う（LAD近位部閉塞の指標）']]},
   {id:'vf',cat:'arrhythmia',name:'心室細動（VF）',sub:'除細動適応 — P・QRS・T波消失・不規則な粗大振動',tag:'心停止',tagC:'#fde8e4',tagT:'#791f1f',lbls:[{t:'即時除細動',c:'#fde8e4',tc:'#791f1f'},{t:'P/QRS/T消失',c:'#fde8e4',tc:'#791f1f'}],gen:()=>{const pts=[];const W=CW;for(let x=0;x<W;x++){const mod=1+Math.sin(x*0.11)*0.25+Math.sin(x*0.07)*0.15;const f2=Math.sin(x*1.43+1.2)*2.5;const f3=Math.sin(x*0.93+0.7)*1.8;const phase=Math.sin(x*0.031)*0.4;const y=(Math.sin(x*0.68+phase)*13)*mod+f2+f3;pts.push([x,y]);}return pts;},details:[['特徴','Coarse VF（粗大型）：振幅中程度・約300/分・P/QRS/T完全消失'],['脈拍','なし（心停止状態）'],['対応','即時除細動（360J非同期）＋高質CPR']]},
   {id:'vt',cat:'arrhythmia',name:'心室頻拍（VT）',sub:'幅広QRS頻拍 180〜200bpm・正弦波様・RR規則的',tag:'最緊急',tagC:'#fde8e4',tagT:'#791f1f',lbls:[{t:'QRS幅広（正弦波様）',c:'#fde8e4',tc:'#791f1f'},{t:'RR規則的',c:'#fde8e4',tc:'#791f1f'}],gen:()=>{const pts=[];const cyc=32;for(let b=0;b<Math.floor(CW/cyc)+2;b++){const ox=b*cyc;for(let i=0;i<cyc;i++){const x=ox+i;if(x>=CW)break;const phase=i/cyc;let y=0;y+=18*Math.sin(phase*Math.PI*2-Math.PI*0.3);y+=g(i,cyc*0.18,cyc*0.06,-3);y+=g(i,cyc*0.72,cyc*0.09,-4);pts.push([x,y]);}}return pts;},details:[['特徴','正弦波様の幅広QRS（≥200ms）・心拍数約190bpm'],['鑑別','器質的心疾患（既往心筋梗塞等）があればほぼVT'],['対応','不安定→即時除細動（同期）/ 安定→アミオダロン']]},
   {id:'af',cat:'arrhythmia',name:'心房細動（Af）',sub:'P波消失・f波・RR絶対不整',tag:'不整脈',tagC:'#fffbf0',tagT:'#5a3800',lbls:[{t:'P波消失',c:'#fffbf0',tc:'#5a3800'},{t:'RR絶対不整',c:'#fffbf0',tc:'#5a3800'}],gen:()=>{const pts=[];const qt=[29,63,106,141,180,220,252];for(let x=0;x<CW;x++){const nr=qt.find(q=>Math.abs(x-q)<7);if(nr!==undefined){const qi=x-nr+7;if(qi>=0&&qi<14){let y=g(qi,4.5,1.7,16)+g(qi,8,1.3,-4);if(qi>=9&&qi<14)y+=g(qi-9,2.5,2,3.5);pts.push([x,y]);}}else{pts.push([x,Math.sin(x*1.8)*.45+Math.sin(x*3.1)*.28+Math.sin(x*5.7)*.15]);}}pts.sort((a,b)=>a[0]-b[0]);return pts;},details:[['P波','消失→微細なf波（350〜600/分）'],['RR間隔','絶対不整（Afの最大の特徴）'],['報告例','「心拍数170、QRS幅狭い、RR絶対不整、P波なし、Af疑い」']]},
@@ -672,6 +720,26 @@ function mkL(o){return strip(ox=>beat({ox,rr:60,...o}),LW,2);}
 const NSR={'Ⅰ':mkL({p_h:1.8,r_h:8,s_depth:1.2,t_h:3.5,q_depth:.3}),'Ⅱ':mkL({p_h:2.8,r_h:15,s_depth:0.4,t_h:5.5,q_depth:.4}),'Ⅲ':mkL({p_h:1.2,r_h:5,s_depth:2.8,t_h:2.0,q_depth:.2}),'aVR':mkL({p_h:2.0,p_neg:true,r_neg:true,r_h:10,t_h:3.5,q_depth:0}),'aVL':mkL({p_h:1.0,r_h:3.5,s_depth:4.0,t_h:1.5,q_depth:.2}),'aVF':mkL({p_h:2.2,r_h:11,s_depth:0.8,t_h:5.0,q_depth:.4}),'V1':mkL({p_h:1.0,r_h:2.5,s_depth:9.5,t_h:1.5,q_depth:0,st:.4,st_type:'depress',t_w:16}),'V2':mkL({p_h:1.3,r_h:5,s_depth:11.5,t_h:3.5,q_depth:0}),'V3':mkL({p_h:1.6,r_h:9,s_depth:9.5,t_h:4.5,q_depth:0}),'V4':mkL({p_h:1.9,r_h:17,s_depth:4.5,t_h:6.5,q_depth:.2}),'V5':mkL({p_h:1.7,r_h:19,s_depth:1.5,t_h:6.0,q_depth:.3}),'V6':mkL({p_h:1.7,r_h:13,s_depth:0.5,t_h:4.5,q_depth:.3})};
 const lead12DB={
   nsr:{label:'正常洞調律',tag:'正常',tagC:'#d4edd8',tagT:'#1a4a22',info:'全誘導でP-QRS-T正常。RR規則的（60〜100bpm）。aVRは全波形逆転（正常）。',finding:'【正常R波増高パターン】V1(r=2.5,S=9mm・rS型)→V2→V3(移行帯)→V4(R>S)→V5(R最大=19mm)→V6(R=13mm)。',hl:[],hl2:[],hl3:[],leads:NSR},
+  dewinter:{
+    label:'de Winter complex',tag:'最緊急',tagC:'#fde8e4',tagT:'#791f1f',
+    info:'LAD近位部閉塞。V1〜V6でupsloping型ST低下（J点最低→T波へ上昇）＋左右対称の高いT波。aVR ST上昇。STEMIと同等の緊急対応が必要。全前壁梗塞の約2%に出現。',
+    finding:'【実波形（青矢印誘導）】V3〜V4が最典型。J点から上昇型ST低下→高く左右対称のT波。ST上昇がないためSTEMIと見誤りやすい。aVR ST上昇がLAD近位部閉塞の確認指標。',
+    hl:['V1','V2','V3','V4','V5'],hl2:['aVR'],hl3:[],
+    leads:{
+      'Ⅰ': mkL({p_h:1.6,r_h:7,s_depth:1.5,t_h:3}),
+      'Ⅱ': mkL({p_h:2.2,r_h:10,s_depth:0.8,t_h:4.5}),
+      'Ⅲ': mkL({p_h:1.2,r_h:4,s_depth:2,t_h:2}),
+      'aVR':mkL({p_h:1.5,p_neg:true,r_neg:true,r_h:8,t_h:3,st:2,st_type:'rise',t_w:16}),
+      'aVL':mkL({p_h:1.0,r_h:4,s_depth:3,t_h:2}),
+      'aVF':mkL({p_h:1.8,r_h:8,s_depth:1,t_h:3.5}),
+      'V1': (()=>{const rr=60,pr=14,qrs=8,stLen=8,tw=22;return strip(ox=>{const pts=[];for(let i=0;i<rr;i++){let y=0,x=ox+i;y+=g(i,7,3.2,1.0);const qS=pr,qE=qS+qrs;if(i>=qS&&i<qE){const qi=i-qS;y+=g(qi,qrs*.42,qrs*.15,3);y-=g(qi,qrs*.72,qrs*.060,10);}const stS=qE,tE=stS+stLen+tw;if(i>=stS&&i<tE){const si=i-stS,ti=Math.max(0,i-(stS+stLen));if(i<stS+stLen){const sf=si/stLen;y-=2.5*(1-sf);}else{y+=g(ti,tw*.48,tw*.22,7);}}pts.push([x,y]);}return pts;},LW,2);})(),
+      'V2': (()=>{const rr=60,pr=14,qrs=8,stLen=8,tw=22;return strip(ox=>{const pts=[];for(let i=0;i<rr;i++){let y=0,x=ox+i;y+=g(i,7,3.2,1.2);const qS=pr,qE=qS+qrs;if(i>=qS&&i<qE){const qi=i-qS;y+=g(qi,qrs*.42,qrs*.15,6);y-=g(qi,qrs*.72,qrs*.060,12);}const stS=qE,tE=stS+stLen+tw;if(i>=stS&&i<tE){const si=i-stS,ti=Math.max(0,i-(stS+stLen));if(i<stS+stLen){const sf=si/stLen;y-=3*(1-sf);}else{y+=g(ti,tw*.48,tw*.22,13);}}pts.push([x,y]);}return pts;},LW,2);})(),
+      'V3': (()=>{const rr=60,pr=14,qrs=8,stLen=8,tw=22;return strip(ox=>{const pts=[];for(let i=0;i<rr;i++){let y=0,x=ox+i;y+=g(i,7,3.2,1.5);const qS=pr,qE=qS+qrs;if(i>=qS&&i<qE){const qi=i-qS;y+=g(qi,qrs*.42,qrs*.15,10);y-=g(qi,qrs*.72,qrs*.060,9);}const stS=qE,tE=stS+stLen+tw;if(i>=stS&&i<tE){const si=i-stS,ti=Math.max(0,i-(stS+stLen));if(i<stS+stLen){const sf=si/stLen;y-=3.5*(1-sf);}else{y+=g(ti,tw*.48,tw*.22,16);}}pts.push([x,y]);}return pts;},LW,2);})(),
+      'V4': (()=>{const rr=60,pr=14,qrs=8,stLen=8,tw=22;return strip(ox=>{const pts=[];for(let i=0;i<rr;i++){let y=0,x=ox+i;y+=g(i,7,3.2,1.7);const qS=pr,qE=qS+qrs;if(i>=qS&&i<qE){const qi=i-qS;y+=g(qi,qrs*.42,qrs*.15,15);y-=g(qi,qrs*.72,qrs*.060,5);}const stS=qE,tE=stS+stLen+tw;if(i>=stS&&i<tE){const si=i-stS,ti=Math.max(0,i-(stS+stLen));if(i<stS+stLen){const sf=si/stLen;y-=3*(1-sf);}else{y+=g(ti,tw*.48,tw*.22,15);}}pts.push([x,y]);}return pts;},LW,2);})(),
+      'V5': (()=>{const rr=60,pr=14,qrs=8,stLen=8,tw=22;return strip(ox=>{const pts=[];for(let i=0;i<rr;i++){let y=0,x=ox+i;y+=g(i,7,3.2,1.6);const qS=pr,qE=qS+qrs;if(i>=qS&&i<qE){const qi=i-qS;y+=g(qi,qrs*.42,qrs*.15,17);y-=g(qi,qrs*.72,qrs*.060,3);}const stS=qE,tE=stS+stLen+tw;if(i>=stS&&i<tE){const si=i-stS,ti=Math.max(0,i-(stS+stLen));if(i<stS+stLen){const sf=si/stLen;y-=2*(1-sf);}else{y+=g(ti,tw*.48,tw*.22,12);}}pts.push([x,y]);}return pts;},LW,2);})(),
+      'V6': mkL({p_h:1.6,r_h:13,s_depth:1,t_h:5}),
+    }
+  },
   stemi_ant:{label:'前壁中隔梗塞',tag:'最緊急',tagC:'#fde8e4',tagT:'#791f1f',info:'V1〜V4でQS型＋大きなST上昇（tombstone型）≥2mm。LAD閉塞。Ⅱ・Ⅲ・aVFに鏡像ST低下＋陰性T波。',finding:'V1〜V3：QS型＋大きなST上昇。Ⅱ・Ⅲ・aVF：ST低下＋陰性T波（鏡像）。aVR：ST上昇。',hl:['V1','V2','V3','V4'],hl2:['Ⅱ','Ⅲ','aVF'],hl3:[],leads:{'Ⅰ':mkL({p_h:1.5,r_h:5,s_depth:1,t_h:2,st:.8,st_type:'iso'}),'Ⅱ':mkL({p_h:2.2,r_h:8,s_depth:1,t_h:3.5,st:2.5,st_type:'depress'}),'Ⅲ':mkL({p_h:1.0,r_h:3,s_depth:1.5,t_h:2.5,st:2,st_type:'depress'}),'aVR':mkL({p_h:1.8,p_neg:true,r_neg:true,r_h:8,t_h:3,st:2,st_type:'rise'}),'aVL':mkL({p_h:1.0,r_h:4,s_depth:2,t_h:2,st:1,st_type:'iso'}),'aVF':mkL({p_h:1.8,r_h:7,s_depth:1,t_h:3,st:2.5,st_type:'depress'}),'V1':mkL({p_h:1.0,qs:true,r_h:9,qrs:9,t_h:12,st:9,st_type:'rise',t_w:22}),'V2':mkL({p_h:1.2,qs:true,r_h:12,qrs:9,t_h:14,st:12,st_type:'rise',t_w:22}),'V3':mkL({p_h:1.4,qs:true,r_h:11,qrs:9,t_h:12,st:10,st_type:'rise',t_w:22}),'V4':mkL({p_h:1.7,qs:true,r_h:9,qrs:9,t_h:9,st:7,st_type:'rise',t_w:21}),'V5':mkL({p_h:1.6,r_h:15,s_depth:2,t_h:6,st:2,st_type:'rise'}),'V6':mkL({p_h:1.6,r_h:12,s_depth:1,t_h:5})}},
   stemi_inf:{label:'下壁梗塞',tag:'最緊急',tagC:'#fde8e4',tagT:'#791f1f',info:'Ⅱ・Ⅲ・aVFでST上昇（異常Q波あり）。Ⅲ>ⅡはRCA近位部閉塞を示唆。aVLに最強の鏡像ST低下。',finding:'Ⅲ>ⅡのST上昇（RCA近位部閉塞の確実な指標）。aVL最強鏡像ST低下。',hl:['Ⅱ','Ⅲ','aVF'],hl2:['aVL'],hl3:['V2','V3','V4'],leads:{'Ⅰ':mkL({p_h:1.6,r_h:5,s_depth:1.5,q_depth:.2,t_h:2.5}),'Ⅱ':mkL({p_h:2.8,r_h:14,s_depth:0.3,q_depth:1.2,t_h:8,st:5,st_type:'rise',t_w:22,abnq:true}),'Ⅲ':mkL({p_h:1.6,r_h:16,s_depth:0.2,q_depth:1.5,t_h:10,st:7,st_type:'rise',t_w:23,abnq:true}),'aVR':mkL({p_h:1.8,p_neg:true,r_neg:true,r_h:9,t_h:3.5,st:1.5,st_type:'depress',t_w:18}),'aVL':mkL({p_h:1.0,r_h:3,s_depth:4,q_depth:.2,t_h:4,st:4,st_type:'depress',t_w:19}),'aVF':mkL({p_h:2.2,r_h:14,s_depth:0.2,q_depth:1.2,t_h:8.5,st:5.5,st_type:'rise',t_w:22,abnq:true}),'V1':mkL({p_h:1.0,r_h:2.5,s_depth:9,q_depth:0,t_h:2}),'V2':mkL({p_h:1.3,r_h:5,s_depth:11,q_depth:0,t_h:2.5}),'V3':mkL({p_h:1.6,r_h:9,s_depth:9,q_depth:0,t_h:3.5}),'V4':mkL({p_h:1.8,r_h:17,s_depth:5,q_depth:.2,t_h:5}),'V5':mkL({p_h:1.7,r_h:19,s_depth:2,q_depth:.3,t_h:5.5}),'V6':mkL({p_h:1.6,r_h:13,s_depth:1,q_depth:.3,t_h:4.5})}},
   stemi_lat:{label:'側壁梗塞（LCX鈍角枝）',tag:'最緊急',tagC:'#fde8e4',tagT:'#791f1f',info:'Ⅰ・aVL・V5・V6でST上昇（≤1mmが多い）。Ⅲ・aVFに鏡像ST低下。ST変化が軽微で見落とし注意。',finding:'赤枠（Ⅰ・aVL・V5・V6）：ST上昇は≤1mm。青枠（Ⅲ・aVF）：ST低下（鏡像）。診断のコツ：Ⅲ・aVFのST低下から逆算してⅠ・aVLを再確認。',hl:['Ⅰ','aVL','V5','V6'],hl2:['Ⅲ','aVF'],hl3:['V2','V3'],leads:{'Ⅰ':mkL({p_h:1.4,r_h:5,s_depth:2,q_depth:.2,t_h:2.5,st:1.5,st_type:'rise',t_w:18}),'Ⅱ':mkL({p_h:1.8,r_h:6,s_depth:3,q_depth:.2,t_h:3,st:1,st_type:'depress',t_w:18}),'Ⅲ':mkL({p_h:1.2,r_h:3,s_depth:5,q_depth:.2,t_h:2.5,st:2,st_type:'depress',t_w:18}),'aVR':mkL({p_h:1.5,p_neg:true,r_neg:true,r_h:6,t_h:2.5,st:1,st_type:'rise',t_w:16}),'aVL':mkL({p_h:0.8,r_h:4,s_depth:2,q_depth:.1,t_h:2.5,st:1.5,st_type:'rise',t_w:18}),'aVF':mkL({p_h:1.6,r_h:4,s_depth:4,q_depth:.2,t_h:2.5,st:2,st_type:'depress',t_w:18}),'V1':mkL({p_h:1.0,r_h:2.5,s_depth:9,q_depth:0,t_h:1.5,st_type:'iso'}),'V2':mkL({p_h:1.3,r_h:5,s_depth:10,q_depth:0,t_h:7,st_type:'coronary_t',t_w:22}),'V3':mkL({p_h:1.6,r_h:9,s_depth:8,q_depth:0,t_h:4.5,st_type:'coronary_t',t_w:20}),'V4':mkL({p_h:1.8,r_h:15,s_depth:5,q_depth:.2,t_h:2,st_type:'coronary_t',t_w:18}),'V5':mkL({p_h:1.6,r_h:17,s_depth:3,q_depth:.3,t_h:4,st:1.5,st_type:'rise',t_w:19}),'V6':mkL({p_h:1.6,r_h:13,s_depth:2,q_depth:.3,t_h:4.5,st:1.5,st_type:'rise',t_w:19})}},
@@ -741,6 +809,13 @@ const DIAGNOSES=[
   {id:'nstemi',name:'NSTEMI（非ST上昇型急性心筋梗塞）',vessel:'複数血管 / 非閉塞性血栓',test(sm,has,cnt){const dL=LEADS.filter(l=>sm[l.id]&&sm[l.id].dep).length;const rL=LEADS.filter(l=>sm[l.id]&&sm[l.id].rise).length;let sc=0;if(dL>=2&&rL===0)sc+=35;if(dL>=4)sc+=15;if(has('aVR','rise')&&dL>=3)sc+=20;if(rL>=3)sc-=30;return sc;},detail(sm,has,cnt){const o=[];const dL=LEADS.filter(l=>sm[l.id]&&sm[l.id].dep).map(l=>l.name);if(dL.length>0)o.push(`ST低下: ${dL.join('・')}`);if(has('aVR','rise'))o.push('aVR ST上昇→左主幹部・多枝病変');return o;},warnings:['ST上昇なしでもトロポニン上昇→NSTEMI確定']},
   {id:'lbbb',name:'完全左脚ブロック（LBBB）',vessel:'刺激伝導系',test(sm,has,cnt){let sc=0;if(cnt(['V1','V2','V3'],'q')>=2&&cnt(['V5','V6'],'inv')>=1)sc+=30;if(cnt(['V1','V2','V3'],'rise')>=2&&cnt(['V5','V6'],'inv')>=1)sc+=25;return sc;},detail(sm,has,cnt){const o=[];if(cnt(['V1','V2','V3'],'q')>=1)o.push('V1〜V3 QS型（異常Q波）');if(cnt(['V5','V6'],'inv')>=1)o.push('V5・V6 T波陰性（discordant正常変化）');return o;},warnings:['新規LBBBは急性梗塞として対応（Sgarbossa基準を適用）']},
   {id:'hyperk',name:'高カリウム血症',vessel:'電解質異常（腎不全等）',test(sm,has,cnt){const tL=LEADS.filter(l=>sm[l.id]&&sm[l.id].tall).length;let sc=0;if(tL>=4)sc+=45;if(tL>=6)sc+=15;return sc;},detail(sm,has,cnt){const tL=LEADS.filter(l=>sm[l.id]&&sm[l.id].tall).map(l=>l.name);const o=[];if(tL.length>0)o.push(`広範囲テント状T波: ${tL.join('・')}`);return o;},warnings:['P波消失→QRS幅広→VFの順で悪化','腎不全・ACE阻害薬服用歴を確認']},
+  {id:'stemi_ant_lat',name:'前壁・高位側壁梗塞（STEMI）',vessel:'LAD近位部（対角枝分岐前）',test(sm,has,cnt){let sc=0;const ar=cnt(['V2','V3','V4','V5','V6'],'rise');const hl=cnt(['I','aVL'],'rise');if(ar>=2&&hl>=1)sc+=45;if(ar>=3&&hl>=2)sc+=20;if(cnt(['II','III','aVF'],'dep')>=2)sc+=15;if(has('aVR','rise'))sc+=15;return sc;},detail(sm,has,cnt){const o=[];const ar=cnt(['V2','V3','V4','V5','V6'],'rise');if(ar>0)o.push(`V2〜V6 ST上昇（${ar}誘導）`);if(has('I','rise')||has('aVL','rise'))o.push('Ⅰ・aVL ST上昇（高位側壁関与）');if(has('aVR','rise'))o.push('aVR ST上昇 → LAD近位部/左主幹部閉塞');return o;},warnings:['LAD近位部閉塞は広範囲心筋壊死→最緊急','aVR ST上昇は左主幹部病変を示唆']},
+  {id:'dewinter',name:'de Winter ST/T wave complex',vessel:'LAD近位部（前下行枝近位部）',test(sm,has,cnt){let sc=0;const vd=cnt(['V1','V2','V3','V4','V5'],'dep');const vt=cnt(['V1','V2','V3','V4','V5'],'tall');if(vd>=2&&vt>=2)sc+=60;if(vd>=3)sc+=15;if(has('aVR','rise'))sc+=20;return sc;},detail(sm,has,cnt){const o=[];const vd=cnt(['V1','V2','V3','V4','V5'],'dep');if(vd>=1)o.push(`V1〜V5 upsloping ST低下（${vd}誘導）`);if(cnt(['V1','V2','V3','V4','V5'],'tall')>=1)o.push('高い対称性T波（de Winterパターンの核心）');if(has('aVR','rise'))o.push('aVR ST上昇 → LAD近位部閉塞の確認指標');return o;},warnings:['ST上昇がないためSTEMIと認識されにくい','即時カテーテル室搬送（STEMI等価病変）']},
+  {id:'hyperacute',name:'超急性期T波（梗塞30分以内）',vessel:'閉塞部位は多様',test(sm,has,cnt){const tL=LEADS.filter(l=>sm[l.id]&&sm[l.id].tall).length;const rL=LEADS.filter(l=>sm[l.id]&&sm[l.id].rise).length;let sc=0;if(tL>=2&&rL===0)sc+=45;if(tL>=3)sc+=15;if(cnt(['V1','V2','V3','V4'],'tall')>=2)sc+=15;return sc;},detail(sm,has,cnt){const tL=LEADS.filter(l=>sm[l.id]&&sm[l.id].tall).map(l=>l.name);const o=[];if(tL.length>0)o.push(`T波増高（幅広・高い・対称）: ${tL.join('・')}`);o.push('ST上昇が出現する前の最初の変化');return o;},warnings:['10分後に再記録→ST上昇に移行する可能性','この段階での再灌流が心筋壊死を最小化する']},
+  {id:'wellens',name:'Wellens症候群（LAD高度狭窄）',vessel:'LAD（左前下行枝）高度狭窄',test(sm,has,cnt){const vi=cnt(['V2','V3'],'inv');const vt=cnt(['V2','V3'],'tall');const rL=LEADS.filter(l=>sm[l.id]&&sm[l.id].rise).length;let sc=0;if(vi>=2&&rL===0)sc+=50;if(vt>=2&&rL===0)sc+=30;return sc;},detail(sm,has,cnt){const o=[];if(cnt(['V2','V3'],'inv')>=1)o.push('V2・V3 深い陰性T波（A型Wellens）');if(cnt(['V2','V3'],'tall')>=1)o.push('V2・V3 二相性T波（B型Wellens）');return o;},warnings:['ST上昇がなくても緊急カテーテルの適応','運動負荷試験禁忌（心筋梗塞誘発リスク）']},
+  {id:'rbbb_dx',name:'完全右脚ブロック（RBBB）',vessel:'刺激伝導系',test(sm,has,cnt){let sc=0;const v12change=cnt(['V1','V2'],'rise')+cnt(['V1','V2'],'dep');const sv=cnt(['I','V5','V6'],'dep');if(v12change>=1&&sv>=1)sc+=35;return sc;},detail(sm,has,cnt){const o=[];if(cnt(['V1','V2'],'rise')>=1||cnt(['V1','V2'],'dep')>=1)o.push("V1・V2 RSR'型＋ST変化（discordant正常変化）");if(cnt(['I','V5','V6'],'dep')>=1)o.push('Ⅰ・V5・V6 ST低下（幅広S波の反映）');return o;},warnings:['新規RBBBは肺塞栓・右室梗塞を考慮','S1Q3T3パターンと組み合わせで肺塞栓を示唆']},
+  {id:'pe',name:'肺塞栓症（PE）',vessel:'右室急性圧負荷',test(sm,has,cnt){const s1=has('I','dep')||has('I','inv');const q3=has('III','q');const t3=has('III','inv');const v13inv=cnt(['V1','V2','V3'],'inv');let sc=0;if(s1&&q3&&t3)sc+=45;if(v13inv>=2)sc+=20;return sc;},detail(sm,has,cnt){const o=[];const s1=has('I','dep')||has('I','inv');const q3=has('III','q');const t3=has('III','inv');if(s1&&q3&&t3)o.push('S1Q3T3パターン（右室急性負荷の特徴）');if(cnt(['V1','V2','V3'],'inv')>=1)o.push('V1〜V3 T波陰性（右室肥大・負荷）');return o;},warnings:['新規RBBBとS1Q3T3の合併は肺塞栓を強く示唆','D-dimer・造影CTを迅速に施行']},
+  {id:'nstemi_dx',name:'NSTEMI（非ST上昇型急性心筋梗塞）',vessel:'複数血管 / 非閉塞性血栓',test(sm,has,cnt){const dL=LEADS.filter(l=>sm[l.id]&&sm[l.id].dep).length;const rL=LEADS.filter(l=>sm[l.id]&&sm[l.id].rise).length;let sc=0;if(dL>=2&&rL===0)sc+=35;if(dL>=4)sc+=15;if(has('aVR','rise')&&dL>=3)sc+=20;if(rL>=3)sc-=30;return sc;},detail(sm,has,cnt){const o=[];const dL=LEADS.filter(l=>sm[l.id]&&sm[l.id].dep).map(l=>l.name);if(dL.length>0)o.push(`ST低下: ${dL.join('・')}`);if(has('aVR','rise'))o.push('aVR ST上昇 → 左主幹部・多枝病変');return o;},warnings:['ST上昇なしでもトロポニン上昇→NSTEMI確定','TIMI/GRACEスコアで緊急度を層別化']},
 ];
 function buildDxUI(){
   const wrap=document.getElementById('leads-wrap-dx');if(!wrap)return;
