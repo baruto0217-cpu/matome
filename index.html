@@ -32,7 +32,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
   background-clip:text;}
 .launcher-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-top:6px;letter-spacing:0.05em;}
 
-.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:380px;padding:0 20px;}
+.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:420px;padding:0 20px;}
 
 .app-card{
   background:rgba(255,255,255,0.05);
@@ -66,6 +66,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
 .app-card.obstetric .app-tag{background:rgba(185,28,28,0.2);color:#f87171;}
 .app-card.burn .app-tag{background:rgba(216,90,48,0.2);color:#fb923c;}
 .app-card.ecg  .app-tag{background:rgba(29,110,158,0.2);color:#60a5fa;}
+.app-card.stroke::before{background:linear-gradient(135deg,rgba(192,57,43,0.3),rgba(192,57,43,0.05));}
+.app-card.stroke .app-tag{background:rgba(192,57,43,0.2);color:#f87171;}
 
 .launcher-footer{margin-top:32px;font-size:11px;color:rgba(255,255,255,0.25);text-align:center;padding:0 20px;}
 
@@ -92,6 +94,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
 .frame-header.obstetric{background:#b91c1c;}
 .frame-header.burn{background:#7c2d12;}
 .frame-header.ecg{background:#1a4a7c;}
+.frame-header.stroke{background:#c0392b;}
 
 .back-btn{
   width:36px;height:36px;border-radius:50%;
@@ -144,6 +147,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
       <div class="app-desc">ST診断基準・疾患別波形・12誘導マップ・所見→判断・測定プロトコール</div>
       <div class="app-tag">ECG REFERENCE</div>
     </div>
+    <div class="app-card stroke" onclick="openApp('stroke')">
+      <div class="app-icon">🧠</div>
+      <div class="app-name">脳卒中評価</div>
+      <div class="app-desc">BE-FAST・CPSS・RACE・NIHSS・GCS・臨床推論</div>
+      <div class="app-tag">STROKE</div>
+    </div>
   </div>
   <div class="launcher-footer">各アプリをタップして起動</div>
 </div>
@@ -192,12 +201,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
   </div>
 </div>
 
+<!-- 脳卒中評価 -->
+<div class="app-frame" id="frame-stroke">
+  <div class="frame-header stroke">
+    <button class="back-btn" onclick="closeApp()">←</button>
+    <span class="frame-title">🧠 脳卒中評価</span>
+  </div>
+  <div class="frame-body">
+    <iframe id="iframe-stroke" src="" title="脳卒中評価アプリ"></iframe>
+  </div>
+</div>
+
 <script>
 const APP_SRCS = {
   pediatric: 'pediatric.html',
   obstetric: 'obstetric.html',
   burn: 'burn.html',
   ecg: 'ecg.html',
+  stroke: 'stroke.html',
 };
 const loaded = {};
 let current = null;

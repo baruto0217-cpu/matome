@@ -1,6 +1,6 @@
 // Service Worker — 救急アセスメント総合支援
 // キャッシュ名（バージョンを上げると古いキャッシュが削除される）
-const CACHE_NAME = 'emergency-suite-v1';
+const CACHE_NAME = 'emergency-suite-v2';
 
 // キャッシュするファイル一覧
 const CACHE_FILES = [
@@ -10,6 +10,7 @@ const CACHE_FILES = [
   './obstetric.html',
   './burn.html',
   './ecg.html',
+  './stroke.html',
 ];
 
 // インストール時：全ファイルをキャッシュに保存
