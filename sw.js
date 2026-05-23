@@ -11,6 +11,8 @@ const CACHE_FILES = [
   './burn.html',
   './ecg.html',
   './stroke.html',
+  './icon.svg',
+  './manifest.json',
 ];
 
 // インストール時：全ファイルをキャッシュに保存
