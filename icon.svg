@@ -8,7 +8,8 @@
 
   <!-- Pregnant woman silhouette (left flank) -->
   <circle cx="30" cy="53" r="8" fill="white"/>
-  <path d="M24,61 L24,88 Q30,94 36,88 C48,88 50,76 36,61 Z" fill="white"/>
+  <!-- 上半身は直線、下部のみお腹が膨らむ形 -->
+  <path d="M24,61 L24,92 Q30,98 36,92 L36,86 C47,86 50,78 36,71 L36,61 Z" fill="white"/>
 
   <!-- Brain (right flank, center ~162,70) -->
   <path d="M152,71 Q151,62 157,60 Q161,58 163,63 Q165,58 169,60 Q174,62 173,71
