@@ -310,12 +310,12 @@ function renderAssessment(){
   h+='<div class="card">';
   h+='<div class="label" style="margin-bottom:12px;">Vital Signs</div>';
   h+='<div class="grid2" style="margin-bottom:8px;">';
-  h+='<div><div class="label" style="margin-bottom:4px;">Heart Rate (bpm)</div><input type="number" value="'+state.hr+'" placeholder="---" oninput="state.hr=this.value;render();"/></div>';
-  h+='<div><div class="label" style="margin-bottom:4px;">sBP (mmHg)</div><input type="number" value="'+state.sbp+'" placeholder="---" oninput="state.sbp=this.value;render();"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">Heart Rate (bpm)</div><input type="number" value="'+state.hr+'" placeholder="---" oninput="state.hr=this.value;" onblur="render();"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">sBP (mmHg)</div><input type="number" value="'+state.sbp+'" placeholder="---" oninput="state.sbp=this.value;" onblur="render();"/></div>';
   h+='</div>';
   h+='<div style="margin-bottom:12px;">';
   h+='<div class="label" style="margin-bottom:4px;">dBP (mmHg) <span style="font-size:9px;color:#2563eb;font-weight:600;letter-spacing:0;">GL2023: ≥90→HDP診断 / ≥110→高血圧緊急症</span></div>';
-  h+='<input type="number" value="'+state.dbp+'" placeholder="---" oninput="state.dbp=this.value;render();" style="font-size:22px;padding:10px 14px;text-align:center;"/>';
+  h+='<input type="number" value="'+state.dbp+'" placeholder="---" oninput="state.dbp=this.value;" onblur="render();" style="font-size:22px;padding:10px 14px;text-align:center;"/>';
   h+='</div>';
   var siColor=siGrade?siGrade.color:'var(--text)';
   h+='<div class="si-box'+(siDanger?' danger':'')+'"><div><div class="label" style="margin-bottom:2px;">Shock Index <span style="font-weight:400;font-size:8px;">GL: SI=1→約1.5L出血 / SI=1.5→約2.5L出血</span></div>';
