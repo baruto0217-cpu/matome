@@ -9,13 +9,7 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',sans-serif;background:#eef0f4;color:#1c1c1e}
 :root{--red:#c0392b;--redl:#fdf0ef;--green:#27ae60;--greenl:#eafaf1;--bd:1px solid #e4e4e6;--shadow:0 2px 8px rgba(0,0,0,0.10);--shadow-sm:0 1px 4px rgba(0,0,0,0.08)}
 .app{max-width:420px;margin:0 auto;background:#eef0f4;padding-bottom:24px;min-height:100vh}
-.hdr{background:var(--red);padding:14px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(192,57,43,0.25)}
-.hdr-row{display:flex;align-items:center;gap:10px}
-.hdr h1{font-size:17px;font-weight:600;color:#fff}
-.hdr-sub{font-size:11px;color:rgba(255,255,255,0.8);margin-top:2px}
-.back{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer;display:none;align-items:center;gap:4px}
-.back.on{display:flex}
-.nav{display:flex;background:#fff;border-bottom:var(--bd);position:sticky;top:56px;z-index:99;box-shadow:var(--shadow-sm)}
+.nav{display:flex;background:#fff;border-bottom:var(--bd);position:sticky;top:0;z-index:99;box-shadow:var(--shadow-sm)}
 .nb{flex:1;padding:12px 4px;font-size:13px;border:none;background:none;color:#8e8e93;cursor:pointer;border-bottom:2px solid transparent}
 .nb.on{color:var(--red);border-bottom-color:var(--red);font-weight:600}
 .pg{display:none;padding:12px}
@@ -91,11 +85,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',sa
 </head>
 <body>
 <div class="app">
-<div class="hdr">
-  <div class="hdr-row">
-    <button class="back" id="backBtn" onclick="goBack()">← 戻る</button>
-    <div><h1>🧠 脳卒中評価</h1><div class="hdr-sub">救急隊・病院前対応</div></div>
-  </div>
+<div id="back-row" style="display:none;background:#fff;border-bottom:1px solid #e4e4e6;padding:8px 16px">
+  <button id="backBtn" onclick="goBack()" style="background:none;border:none;color:#c0392b;font-size:14px;font-weight:600;cursor:pointer;padding:0">← 戻る</button>
 </div>
 
 <div class="nav">
@@ -438,10 +429,10 @@ function showPage(n){
   ['screening','inquiry','summary'].forEach(k=>document.getElementById('nav-'+k).classList.toggle('on',k===n));
   if(n==='summary') renderSummary();
   if(n==='screening'){curKey=null;document.getElementById('scr-list').style.display='';document.getElementById('scr-detail').style.display='none';}
-  document.getElementById('backBtn').classList.toggle('on',n==='screening'&&!!curKey);
+  document.getElementById('back-row').style.display=(n==='screening'&&!!curKey)?'':'none';
 }
 
-function goBack(){curKey=null;document.getElementById('scr-list').style.display='';document.getElementById('scr-detail').style.display='none';document.getElementById('backBtn').classList.remove('on');}
+function goBack(){curKey=null;document.getElementById('scr-list').style.display='';document.getElementById('scr-detail').style.display='none';document.getElementById('back-row').style.display='none';}
 
 const GCS_PED={eye:[{v:4,t:'4: 自然開眼'},{v:3,t:'3: 声かけで開眼'},{v:2,t:'2: 疼痛刺激で開眼'},{v:1,t:'1: 開眼なし'}],verbal:[{v:5,t:'5: 喃語・通常の啼泣'},{v:4,t:'4: 泣くが落ち着かせられる'},{v:3,t:'3: 刺激で泣く・うめく'},{v:2,t:'2: 刺激でうめく'},{v:1,t:'1: なし'}],motor:[{v:6,t:'6: 自発的な目的のある動き'},{v:5,t:'5: 触刺激で払いのける'},{v:4,t:'4: 疼痛で逃避（屈曲）'},{v:3,t:'3: 異常屈曲（除脳硬直様）'},{v:2,t:'2: 異常伸展（除脳硬直様）'},{v:1,t:'1: なし'}]};
 let gcsTab='adult';
@@ -477,7 +468,7 @@ function showSpecialDetail(key){
   document.getElementById('scr-detail').innerHTML=h;
   document.getElementById('scr-detail').style.display='';
   document.getElementById('scr-list').style.display='none';
-  document.getElementById('backBtn').classList.add('on');
+  document.getElementById('back-row').style.display='';
 }
 
 function setSpecial(key,id,v){if(!ST.scores[key])ST.scores[key]={};ST.scores[key][id]=v;curAns=ST.scores[key];updSt();saveState();showSpecialDetail(key);}
@@ -505,7 +496,7 @@ function showGcsDetail(){
   document.getElementById('scr-detail').innerHTML=h;
   document.getElementById('scr-detail').style.display='';
   document.getElementById('scr-list').style.display='none';
-  document.getElementById('backBtn').classList.add('on');
+  document.getElementById('back-row').style.display='';
 }
 
 function switchGcsTab(tab){gcsTab=tab;showGcsDetail();}
@@ -537,7 +528,7 @@ function showDetail(key){
   document.getElementById('scr-detail').innerHTML=h;
   document.getElementById('scr-detail').style.display='';
   document.getElementById('scr-list').style.display='none';
-  document.getElementById('backBtn').classList.add('on');
+  document.getElementById('back-row').style.display='';
 }
 
 const CROSS_MAP=[
