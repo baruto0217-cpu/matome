@@ -139,9 +139,12 @@ var state={
   tab:'assessment',openDisease:null,
   symptoms:{
     boardLikeRigidity:false,continuousPain:false,periodicPain:false,epigastricPain:false,
+    regularContractions:false,suddenUnilateralPain:false,rightLowerPain:false,flankPain:false,
     painlessBleeding:false,bleedingWithPain:false,rupture:false,prolapseSensation:false,
+    fetusBleedingSuspect:false,cordVisible:false,
     seizure:false,visualDisturbance:false,headache:false,coldSweat:false,dyspnea:false,fetalMovementReduced:false,
-    nauseaVomiting:false,jaundice:false,dehydration:false
+    priorCS:false,fever:false,legSwelling:false,
+    nauseaVomiting:false,jaundice:false,dehydration:false,abdomenDistension:false
   }
 };
 
@@ -158,7 +161,19 @@ var diseases=[
   {id:'pa_logic',name:'常位胎盤早期剥離',range:[22,42],pathology:'GL2023（CQ308）：分娩前に胎盤が剥がれ、母体DIC・胎児死亡を招く産科最緊急疾患。外出血を伴わない潜在性早剝では胎児死亡に至ることが多い。',findings:'GL2023：板状硬（子宮過緊張）、持続的腹痛、ポートワイン色のさらっとした性器出血。外出血がなくても胎動減少・消失で疑う。SI急上昇（DICに注意）。',action:'GL2023：大量輸血（新鮮凍結血漿+赤血球製剤）を待たず開始を考慮。超音波で異常がなくても否定できない。総合周産期センターへ最優先搬送。'},
   {id:'afe_logic',name:'羊水塞栓症',range:[36,42],pathology:'羊水成分による急性肺塞栓・アナフィラキシー様反応・DIC。分娩中〜直後に突然発症。予測・予防が困難な産科最緊急疾患の一つ。',findings:'突然の呼吸困難・SpO2低下・意識消失。心肺停止、さらさらした止まらない性器出血（DIC出血）。出血凝固不全が特徴。',action:'即座にCPR開始。大量輸血体制のある施設（ICU完備）への緊急搬送。フィブリノゲン補充を含む大量輸血プロトコル適応。'},
   {id:'aflp',name:'急性妊娠脂肪肝 (AFLP)',range:[28,40],pathology:'GL2023（CQ312）：妊娠後期の肝脂肪変性。HELLP症候群と鑑別困難で同一CQに収載。低血糖・凝固障害・腎不全を合併し、母児死亡リスクが高い重篤疾患。',findings:'全身倦怠感・悪心嘔吐・黄疸・右季肋部痛。低血糖（発汗・意識障害・振戦）を合併することがある。HELLP症候群と症状が重複。',action:'低血糖補正（ブドウ糖投与）しながら緊急搬送。総合周産期センターで緊急妊娠終結が必要。早期認識・早期分娩が予後を左右する。'},
-  {id:'pph',name:'産後出血 (PPH)',range:[37,42],pathology:'GL2023（CQ418）：分娩後500mL以上の出血。子宮弛緩が最多原因（約80%）。血圧低下は遅れて現れるためSI監視が重要。SI≥1.0で急性循環不全対応が必要。',findings:'GL2023基準：100bpm以上の頻脈 または SI≥1.0 または 興奮・不穏・不安などの意識状態 → 急性循環不全と判断。分娩後の大量性器出血、子宮軟性（弛緩）。',action:'GL2023：①酸素投与②血液検査（フィブリノゲン含む）輸血準備③トラネキサム酸投与を考慮。子宮底輪状マッサージ。自施設困難なら大量輸血対応施設へ緊急搬送。'}
+  {id:'pph',name:'産後出血 (PPH)',range:[37,42],pathology:'GL2023（CQ418）：分娩後500mL以上の出血。子宮弛緩が最多原因（約80%）。血圧低下は遅れて現れるためSI監視が重要。SI≥1.0で急性循環不全対応が必要。',findings:'GL2023基準：100bpm以上の頻脈 または SI≥1.0 または 興奮・不穏・不安などの意識状態 → 急性循環不全と判断。分娩後の大量性器出血、子宮軟性（弛緩）。',action:'GL2023：①酸素投与②血液検査（フィブリノゲン含む）輸血準備③トラネキサム酸投与を考慮。子宮底輪状マッサージ。自施設困難なら大量輸血対応施設へ緊急搬送。'},
+  {id:'preterm',name:'切迫早産',range:[22,37],pathology:'妊娠22週〜37週未満に規則的な子宮収縮が出現し、頸管短縮・開大が進行する状態。子宮頸管無力症（無痛性）とは異なり、収縮性の腹痛を伴う。22〜28週は超低出生体重管理が必要でNICU完備施設が必須。',findings:'5〜10分間隔の規則的な下腹部緊満感・子宮収縮（収縮時に腹部が硬くなる）。腰背部痛、少量の性器出血や帯下増加を伴うことがある。破水感を伴う場合はより緊急。',action:'子宮収縮抑制薬投与可能な施設へ搬送。左側臥位・安静。22〜28週の超早産期はNICU・MFICUを備えた総合周産期センターが必須。'},
+  {id:'ovarian_torsion',name:'卵巣嚢腫茎捻転',range:[0,22],pathology:'妊娠初期に増大した卵巣嚢腫（黄体嚢胞など）が軸を中心に捻転し、血流障害を来す。虚血が進行すると卵巣壊死となるため時間的緊急性が高い。妊娠初期の黄体嚢腫拡大により特に多く、異所性妊娠との鑑別が重要。',findings:'突然の片側性激痛（右>左）・悪心嘔吐・腹膜刺激症状。痛みは持続性で体位変換で悪化する。出血を伴わないことが多く、異所性妊娠（出血あり）との鑑別ポイント。発熱は壊死進行後に出現。',action:'緊急手術が必要。異所性妊娠との鑑別が重要（性器出血の有無を確認）。速やかな外科・産婦人科対応施設への搬送。痛みが突然消失した場合も自然整復後の再捻転リスクあり。'},
+  {id:'uterine_rupture',name:'子宮破裂',range:[28,42],pathology:'帝王切開・筋腫核出術などの既往子宮瘢痕が裂開し、または難産により子宮壁が全層破裂する。腹腔内大量出血によりショックとなる。帝切既往がある場合は分娩中に突然発症することがある。',findings:'帝切既往あり。分娩陣痛中の突然の激痛→子宮収縮の消失・消失、胎動消失・胎児心拍急悪化。腹部の形状変化（子宮外に胎児を触知）。SI急上昇・腹膜刺激症状。',action:'緊急帝王切開が必要。大量腹腔内出血を想定したショック対応（輸液・酸素・大量輸血準備）をしながら総合周産期センターへ最優先搬送。'},
+  {id:'appendicitis_preg',name:'急性虫垂炎（妊娠中）',range:[0,42],pathology:'妊娠中は増大する子宮により虫垂が頭側・外側へ偏位するため、痛みの部位が右下腹部から右側腹部・右季肋部へ移行する。妊娠中は炎症所見が遅れることがあり、穿孔・腹膜炎のリスクが高い。穿孔時の早産・胎児死亡リスクも伴う。',findings:'右下腹部〜右側腹部痛（妊娠週数により部位が頭側に変化）、発熱（38℃以上）、悪心嘔吐。反跳痛・筋性防御は妊娠末期には不明確。食欲不振を伴うことが多い。HELLP症候群との鑑別も必要。',action:'穿孔・腹膜炎では早産・胎児死亡リスクが急増するため、迷わず緊急搬送。外科・産婦人科両科が対応可能な施設へ。'},
+  {id:'urolithiasis',name:'尿管結石（妊娠中）',range:[0,42],pathology:'妊娠中はプロゲステロン・増大する子宮による尿路拡張・尿うっ滞によりシュウ酸カルシウム結石リスクが増加。内視鏡治療に制限があり管理が難しい。感染合併（腎盂腎炎）時は敗血症リスクがある。',findings:'突然の側腹部〜鼠径部への疝痛（波状に増悪）、血尿（肉眼的or顕微鏡的）、悪心嘔吐。居ても立ってもいられない体動不穏が特徴。腹膜刺激症状は通常なし。発熱があれば感染合併を疑う。',action:'疼痛管理・水分補給。発熱を伴う場合は腎盂腎炎・敗血症のリスクで緊急搬送（抗菌薬投与が必要）。NSAIDsは妊娠中要注意のためアセトアミノフェンが推奨。'},
+  {id:'vasa_previa',name:'前置血管（Vasa previa）',range:[34,42],pathology:'胎盤から離れた胎児血管（臍帯血管）が子宮口付近を走行する状態。破水時に血管が断裂して胎児出血を来す。母体は安定しているが胎児が急速に失血する。診断未確定例の胎児死亡率は75〜100%とされる産科最緊急疾患の一つ。',findings:'破膜（破水）直後の突然の鮮血出血→胎児心拍の急激な低下（遷延性徐脈）。母体のバイタルは比較的安定しているが胎児は急速に失血している。出血量は少量でも胎児が危機的状態。',action:'母体が安定していても胎児は緊急状態。即時の緊急帝王切開が唯一の治療。速やかに周産期センターへ搬送。母体安定でも「胎児緊急」として対応する。'},
+  {id:'cervical_polyp',name:'子宮頸管ポリープ・びらん',range:[0,42],pathology:'妊娠中はエストロゲン増加により頸管粘膜が充血・易出血性となる。ポリープ・びらんは良性病変だが妊娠中の不正出血を引き起こす。緊急性は低いが前置胎盤・早期剥離などの重篤疾患の除外が必須。',findings:'少量の鮮血（点状〜少量）、腹痛なし。性交後・排便後・診察後など外来性刺激の後に多い。出血量・腹痛の有無が鑑別のポイント。大量出血・腹痛があれば他疾患を強く疑う。',action:'少量出血で全身状態良好なら緊急性は低い。ただし前置胎盤・常位胎盤早期剥離は必ず除外する。安静・産科への早期受診を促す。'},
+  {id:'chorioamnionitis',name:'絨毛膜羊膜炎（CAM）',range:[22,42],pathology:'絨毛膜・羊膜・羊水の細菌感染。破水後に特にリスクが高く、上行性感染が多い。母体敗血症・早産誘発・新生児感染（B群連鎖球菌等）の原因となる。重症化すると敗血症性ショックとなる。',findings:'発熱（38℃以上）・頻脈・子宮圧痛・悪臭帯下の4徴が典型的。破水を伴うことが多い。羊水の混濁・異臭が見られることがある。重症化すると母体ショック・意識障害。',action:'抗菌薬投与と速やかな分娩（妊娠終結）が原則。敗血症に準じた対応（輸液・酸素）。発熱＋頻脈＋破水の組み合わせは速やかに高次施設へ搬送。'},
+  {id:'cord_prolapse',name:'臍帯脱出',range:[22,42],pathology:'胎児先進部より先に臍帯が下降・脱出した状態。臍帯が胎児先進部と産道の間に挟まれ臍帯循環が途絶する。胎児仮死→死亡の時間的緊急性が最も高い産科緊急疾患の一つ。破水後、多胎・羊水過多・横位などで特にリスクが高い。',findings:'破水後に膣口に臍帯を触知・視認。胎児心拍の急激な悪化（遅発性・遷延性徐脈）。臍帯の拍動が触知できれば胎児は生存中。',action:'【臍帯を押し込まない・絶対に圧迫しない】膝胸位（膝をついてお尻を高く上げる）で臍帯圧迫を軽減。用手的に胎児先進部を持ち上げ臍帯を圧迫から解放。即時緊急帝王切開のために搬送。酸素投与。'},
+  {id:'pancreatitis_preg',name:'急性膵炎（妊娠中）',range:[0,42],pathology:'妊娠中は胆石・高トリグリセリド血症が主な誘因。膵酵素の活性化による自己消化で、重症化すると全身炎症反応・臓器不全を来す。HELLP症候群・AFLPと症状が重複するため鑑別が重要。妊娠後半に多い。',findings:'心窩部〜臍周囲〜背部への放散痛。前屈位（胡坐）で軽減することがある。悪心嘔吐・発熱・腹部防御。HELLP症候群（右季肋部痛・黄疸）と区別が難しい場合がある。',action:'絶飲食・輸液・鎮痛。重症急性膵炎は集中治療が必要。HELLP症候群を除外しながら高次施設（内科・外科・産科対応可能施設）へ搬送。'},
+  {id:'dvt_pe',name:'深部静脈血栓症・肺塞栓',range:[0,42],pathology:'妊娠は凝固能亢進・静脈還流低下・線溶低下により血栓リスクが非妊娠時の5倍。DVTが肺塞栓に発展すると突然の呼吸困難・心停止となる。産後（特に帝切後）がピーク。長期臥床・多胎・肥満がリスク因子。',findings:'DVT：片側の下腿腫脹・発赤・把握痛（Homans徴候は感度が低い）。肺塞栓：突然の胸痛・呼吸困難・頻脈・SpO2低下。大量肺塞栓では失神・心停止。両下肢の左右差に注目。',action:'抗凝固療法（ヘパリン）が必要（妊娠中は経口抗凝固薬禁忌）。酸素投与・安静。大量肺塞栓では心停止となるためCPR対応。ICU対応施設へ緊急搬送。'},
+  {id:'ileus_preg',name:'腸閉塞（イレウス）',range:[0,42],pathology:'増大する子宮による腸管偏位と、既往腹部手術（帝切など）による癒着が屈曲・閉塞を来す。機械的イレウスが多い。妊娠後期に多いが産後も起こりうる。腸管壊死・穿孔の緊急手術が必要となる場合がある。',findings:'腹部膨満感・悪心嘔吐（胆汁性〜便汁性）・排ガス消失・腸蠕動音の亢進（機械性）または消失（麻痺性）。間欠的な強い腹部痙攣痛。帝切・腹部手術の既往歴が重要な鑑別ポイント。',action:'絶飲食・胃管による腸管減圧が必要。外科緊急手術の可能性あり。腹部手術既往の有無を確認し、外科と産科の両科が対応可能な施設へ搬送。'}
 ];
 
 function getSI(){
@@ -172,6 +187,33 @@ function getSIGrade(si){
   if(si>=1.5)return{level:2,label:'危険 SI≥1.5',color:'#dc2626',badge:'DANGER',est:'推定出血約2.5L'};
   if(si>=1.0)return{level:1,label:'要注意 SI≥1.0',color:'#d97706',badge:'WARNING',est:'推定出血約1.5L'};
   return{level:0,label:'正常範囲',color:'#16a34a',badge:'NORMAL',est:''};
+}
+
+function updateSI(){
+  var si=getSI();
+  var siGrade=getSIGrade(si);
+  var siVal=si?si.toFixed(2):'--';
+  var siColor=siGrade?siGrade.color:'var(--text)';
+  var numEl=document.getElementById('si-num-el');
+  var estEl=document.getElementById('si-est-el');
+  var boxEl=document.getElementById('si-box-el');
+  var badgeEl=document.getElementById('si-badge-el');
+  if(numEl){numEl.textContent=siVal;numEl.style.color=siColor;}
+  if(estEl){
+    if(siGrade&&siGrade.est){estEl.textContent=siGrade.est;estEl.style.color=siColor;estEl.style.display='';}
+    else{estEl.style.display='none';}
+  }
+  if(boxEl){boxEl.className='si-box'+(si&&si>=1.0?' danger':'');}
+  if(badgeEl){
+    if(siGrade&&siGrade.level>0){
+      var bc=siGrade.level>=3?'critical':siGrade.level>=2?'danger':'warn';
+      badgeEl.className='si-badge '+bc;
+      badgeEl.innerHTML=siGrade.badge+'<br><span style="font-size:8px;font-weight:600;">'+siGrade.label+'</span>';
+      badgeEl.style.display='';
+    }else{badgeEl.style.display='none';}
+  }
+  var footerSi=document.getElementById('footer-si');
+  if(footerSi){footerSi.textContent=si?si.toFixed(2):'--';footerSi.style.color=(si&&si>1.0)?'#fca5a5':'#fff';}
 }
 
 function getLogic(){
@@ -199,6 +241,18 @@ function getLogic(){
   if(hr<60&&s.bleedingWithPain&&w<22)redFlags.push({name:'子宮頸部ショック（迷走神経反射）',id:'cervical_shock'});
   if(s.dyspnea&&w>=34)redFlags.push({name:'羊水塞栓症 疑い（即時CPR）',id:'afe_logic'});
   if(s.fetalMovementReduced)redFlags.push({name:'胎児機能不全 疑い（胎動消失は最重要サイン）',id:'pa_logic'});
+  // 追加疾患ロジック
+  if(s.regularContractions&&w>=22&&w<37)redFlags.push({name:'切迫早産（規則的収縮）',id:'preterm'});
+  if(s.suddenUnilateralPain&&!s.bleedingWithPain)redFlags.push({name:'卵巣嚢腫茎捻転 疑い',id:'ovarian_torsion'});
+  if(s.priorCS&&(s.continuousPain||s.coldSweat)&&w>=28)redFlags.push({name:'子宮破裂 疑い（帝切既往・要緊急）',id:'uterine_rupture'});
+  if(s.fever&&s.rightLowerPain)redFlags.push({name:'急性虫垂炎 疑い（妊娠中・部位変化に注意）',id:'appendicitis_preg'});
+  if(s.flankPain)redFlags.push({name:'尿管結石 疑い（発熱あれば敗血症リスク）',id:'urolithiasis'});
+  if(s.fetusBleedingSuspect&&w>=34)redFlags.push({name:'前置血管 疑い（胎児緊急・即時帝切）',id:'vasa_previa'});
+  if(s.fever&&(s.rupture||s.continuousPain)&&w>=22)redFlags.push({name:'絨毛膜羊膜炎 疑い（敗血症リスク）',id:'chorioamnionitis'});
+  if(s.cordVisible)redFlags.push({name:'臍帯脱出（産科最緊急・押し込み禁止）',id:'cord_prolapse'});
+  if(s.epigastricPain&&s.nauseaVomiting&&!s.jaundice&&w>=16)redFlags.push({name:'急性膵炎 疑い（妊娠中・HELLP鑑別）',id:'pancreatitis_preg'});
+  if(s.legSwelling&&s.dyspnea)redFlags.push({name:'DVT・肺塞栓 疑い（抗凝固療法が必要）',id:'dvt_pe'});
+  if(s.abdomenDistension&&s.nauseaVomiting&&s.priorCS)redFlags.push({name:'腸閉塞（イレウス）疑い（帝切既往）',id:'ileus_preg'});
   if(redFlags.length>0)facility={level:'高次医療機関（緊急搬送）',reason:'緊急疾患の徴候あり：周産期センターを選定してください。',bg:'#dc2626',color:'#ffffff',border:'#991b1b'};
   return{facility,redFlags,pos};
 }
@@ -264,28 +318,38 @@ function renderAssessment(){
   var symGroups=[
     {color:'#dc2626',label:'Pain (痛み・張り)',icon:'⚡',colorClass:'red',items:[
       {id:'boardLikeRigidity',label:'板状硬（カチカチに硬い）',sub:'常位胎盤早期剥離'},
-      {id:'continuousPain',label:'持続的な激しい腹痛',sub:'早期剥離・AFLP・子宮外破裂'},
+      {id:'continuousPain',label:'持続的な激しい腹痛',sub:'早期剥離・子宮破裂・AFLP'},
       {id:'periodicPain',label:'周期的な下腹部痛',sub:'切迫早産・陣痛'},
-      {id:'epigastricPain',label:'心窩部痛（みぞおちの痛み）',sub:'HELLP症候群・子癇前駆'}
+      {id:'regularContractions',label:'規則的な子宮収縮（5〜10分間隔）',sub:'切迫早産（22〜37週）'},
+      {id:'suddenUnilateralPain',label:'突然の片側性激痛・腹膜刺激症状',sub:'卵巣嚢腫茎捻転・異所性妊娠'},
+      {id:'rightLowerPain',label:'右下腹部〜右側腹部痛＋発熱',sub:'急性虫垂炎（妊娠中は部位が頭側に偏位）'},
+      {id:'flankPain',label:'側腹部〜腰背部の疝痛（波状）',sub:'尿管結石（感染合併で敗血症リスク）'},
+      {id:'epigastricPain',label:'心窩部痛（みぞおちの痛み）',sub:'HELLP症候群・膵炎・子癇前駆'}
     ]},
     {color:'#2563eb',label:'Fluid (出血・膣内)',icon:'💧',colorClass:'blue',items:[
       {id:'painlessBleeding',label:'無痛性の突発的な出血（鮮血）',sub:'前置胎盤（警告出血）'},
       {id:'bleedingWithPain',label:'痛みのある性器出血',sub:'流産・常位胎盤早期剥離'},
-      {id:'rupture',label:'破水感（生温かい水が出る）',sub:'切迫早産・AFE'},
-      {id:'prolapseSensation',label:'膣内の脱出感・帯下増',sub:'子宮頸管無力症・胎胞脱出'}
+      {id:'rupture',label:'破水感（生温かい水が出る）',sub:'切迫早産・絨毛膜羊膜炎・AFE'},
+      {id:'prolapseSensation',label:'膣内の脱出感・帯下増',sub:'子宮頸管無力症・胎胞脱出'},
+      {id:'fetusBleedingSuspect',label:'破水直後の鮮血＋胎児心拍急低下',sub:'前置血管（胎児緊急・母体は安定）'},
+      {id:'cordVisible',label:'膣口に臍帯触知・脱出（臍帯）',sub:'臍帯脱出【押し込み絶対禁止】'}
     ]},
     {color:'#7c3aed',label:'Systemic (全身・神経・胎児)',icon:'🧠',colorClass:'purple',items:[
       {id:'seizure',label:'痙攣（子癇）',sub:'HDP重症合併症'},
       {id:'visualDisturbance',label:'目がチカチカする（視覚障害）',sub:'子癇前駆・脳出血リスク'},
       {id:'headache',label:'重い頭痛',sub:'HDP重症化サイン'},
       {id:'coldSweat',label:'冷汗・顔面蒼白',sub:'ショック状態'},
-      {id:'dyspnea',label:'突然の呼吸困難・心肺停止',sub:'羊水塞栓症の疑い'},
-      {id:'fetalMovementReduced',label:'胎動の減少・消失',sub:'胎児機能不全の最重要サイン'}
+      {id:'dyspnea',label:'突然の呼吸困難・心肺停止',sub:'羊水塞栓症・肺塞栓の疑い'},
+      {id:'fetalMovementReduced',label:'胎動の減少・消失',sub:'胎児機能不全の最重要サイン'},
+      {id:'priorCS',label:'帝王切開・腹部手術の既往あり',sub:'子宮破裂・イレウスのリスク因子'},
+      {id:'fever',label:'発熱（38℃以上）',sub:'絨毛膜羊膜炎・虫垂炎・尿路感染'},
+      {id:'legSwelling',label:'片側下腿の腫脹・把握痛',sub:'深部静脈血栓症（DVT）・肺塞栓リスク'}
     ]},
     {color:'#ea580c',label:'Digestion (消化器)',icon:'🌡',colorClass:'orange',items:[
-      {id:'nauseaVomiting',label:'激しい悪心・嘔吐',sub:'妊娠悪阻・HELLP症候群'},
+      {id:'nauseaVomiting',label:'激しい悪心・嘔吐',sub:'妊娠悪阻・HELLP症候群・膵炎'},
       {id:'jaundice',label:'黄疸（白目が黄色い）',sub:'HELLP・AFLP（重症肝障害）'},
-      {id:'dehydration',label:'口渇・皮膚の乾燥',sub:'脱水徴候'}
+      {id:'dehydration',label:'口渇・皮膚の乾燥',sub:'脱水徴候'},
+      {id:'abdomenDistension',label:'腹部膨満・排ガス消失',sub:'腸閉塞（イレウス）・帝切既往で注意'}
     ]}
   ];
 
@@ -310,22 +374,26 @@ function renderAssessment(){
   h+='<div class="card">';
   h+='<div class="label" style="margin-bottom:12px;">Vital Signs</div>';
   h+='<div class="grid2" style="margin-bottom:8px;">';
-  h+='<div><div class="label" style="margin-bottom:4px;">Heart Rate (bpm)</div><input type="number" value="'+state.hr+'" placeholder="---" oninput="state.hr=this.value;" onblur="render();"/></div>';
-  h+='<div><div class="label" style="margin-bottom:4px;">sBP (mmHg)</div><input type="number" value="'+state.sbp+'" placeholder="---" oninput="state.sbp=this.value;" onblur="render();"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">Heart Rate (bpm)</div><input type="number" inputmode="numeric" value="'+state.hr+'" placeholder="---" oninput="state.hr=this.value;updateSI();"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">sBP (mmHg)</div><input type="number" inputmode="numeric" value="'+state.sbp+'" placeholder="---" oninput="state.sbp=this.value;updateSI();"/></div>';
   h+='</div>';
   h+='<div style="margin-bottom:12px;">';
   h+='<div class="label" style="margin-bottom:4px;">dBP (mmHg) <span style="font-size:9px;color:#2563eb;font-weight:600;letter-spacing:0;">GL2023: ≥90→HDP診断 / ≥110→高血圧緊急症</span></div>';
-  h+='<input type="number" value="'+state.dbp+'" placeholder="---" oninput="state.dbp=this.value;" onblur="render();" style="font-size:22px;padding:10px 14px;text-align:center;"/>';
+  h+='<input type="number" inputmode="numeric" value="'+state.dbp+'" placeholder="---" oninput="state.dbp=this.value;updateSI();" style="font-size:22px;padding:10px 14px;text-align:center;"/>';
   h+='</div>';
   var siColor=siGrade?siGrade.color:'var(--text)';
-  h+='<div class="si-box'+(siDanger?' danger':'')+'"><div><div class="label" style="margin-bottom:2px;">Shock Index <span style="font-weight:400;font-size:8px;">GL: SI=1→約1.5L出血 / SI=1.5→約2.5L出血</span></div>';
-  h+='<div class="si-num" style="color:'+siColor+'">'+siVal+'</div>';
-  if(siGrade&&siGrade.est)h+='<div style="font-size:10px;font-weight:600;color:'+siGrade.color+';margin-top:2px;">'+siGrade.est+'</div>';
+  var siBoxClass='si-box'+(siDanger?' danger':'');
+  var siBadgeClass='si-badge'+(siGrade&&siGrade.level>0?' '+(siGrade.level>=3?'critical':siGrade.level>=2?'danger':'warn'):'');
+  var siBadgeStyle=siGrade&&siGrade.level>0?'':'display:none;';
+  var siBadgeHtml=siGrade&&siGrade.level>0?siGrade.badge+'<br><span style="font-size:8px;font-weight:600;">'+siGrade.label+'</span>':'';
+  var siEstStyle=siGrade&&siGrade.est?'':'display:none;';
+  var siEstHtml=siGrade&&siGrade.est?siGrade.est:'';
+  h+='<div id="si-box-el" class="'+siBoxClass+'"><div>';
+  h+='<div class="label" style="margin-bottom:2px;">Shock Index <span style="font-weight:400;font-size:8px;">GL: SI=1→約1.5L出血 / SI=1.5→約2.5L出血</span></div>';
+  h+='<div id="si-num-el" class="si-num" style="color:'+siColor+'">'+siVal+'</div>';
+  h+='<div id="si-est-el" style="font-size:10px;font-weight:600;margin-top:2px;color:'+siColor+';'+siEstStyle+'">'+siEstHtml+'</div>';
   h+='</div>';
-  if(siGrade&&siGrade.level>0){
-    var badgeClass=siGrade.level>=3?'critical':siGrade.level>=2?'danger':'warn';
-    h+='<div class="si-badge '+badgeClass+'">'+siGrade.badge+'<br><span style="font-size:8px;font-weight:600;">'+siGrade.label+'</span></div>';
-  }
+  h+='<div id="si-badge-el" class="'+siBadgeClass+'" style="'+siBadgeStyle+'">'+siBadgeHtml+'</div>';
   h+='</div></div>';
 
   h+='<div class="card">';
