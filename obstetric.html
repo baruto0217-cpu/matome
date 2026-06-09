@@ -216,6 +216,29 @@ function updateSI(){
   if(footerSi){footerSi.textContent=si?si.toFixed(2):'--';footerSi.style.color=(si&&si>1.0)?'#fca5a5':'#fff';}
 }
 
+function updateWeeksDisplay(){
+  var w=state.weeks,d=state.days;
+  var wEl=document.getElementById('weeks-num-el');
+  var dEl=document.getElementById('days-num-el');
+  var badgeEl=document.getElementById('period-badge-el');
+  var labelEl=document.getElementById('weeks-label-el');
+  if(wEl)wEl.textContent=w;
+  if(dEl)dEl.textContent=d;
+  var periodBg=w<22?'#fef2f2':w<37?'#eff6ff':'#f0fdf4';
+  var periodColor=w<22?'#991b1b':w<37?'#1e40af':'#166534';
+  var periodText=w<22?'流産期':w<37?'早産期':'正期産';
+  if(badgeEl){badgeEl.style.background=periodBg;badgeEl.style.color=periodColor;badgeEl.textContent=periodText;}
+  if(labelEl)labelEl.textContent=w+'w '+d+'d';
+  var footerPos=document.getElementById('footer-pos');
+  var footer=document.getElementById('footer');
+  if(footerPos){
+    var strict=w>=20;
+    footerPos.textContent=w>=20?'左側臥位 厳守':w>=12?'左側臥位 推奨':'通常体位';
+    if(footer){footer.style.background=strict?'#b91c1c':'#1e293b';}
+    footerPos.style.animation=strict?'pulse 1.5s infinite':'none';
+  }
+}
+
 function getLogic(){
   var w=state.weeks,s=state.symptoms,si=getSI(),sbp=parseFloat(state.sbp),hr=parseFloat(state.hr),dbp=parseFloat(state.dbp);
   var redFlags=[];
@@ -358,17 +381,17 @@ function renderAssessment(){
   h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:0.5px solid var(--border);padding-bottom:14px;margin-bottom:14px;">';
   h+='<div><div class="label" style="margin-bottom:5px;">Pregnancy Period</div>';
   h+='<div style="display:flex;align-items:baseline;gap:4px;">';
-  h+='<span class="weeks-num">'+state.weeks+'</span><span class="weeks-unit">w</span>';
-  h+='<span class="weeks-num" style="margin-left:6px;">'+state.days+'</span><span class="weeks-unit">d</span></div></div>';
-  h+='<div class="period-badge" style="background:'+periodBg+';color:'+periodColor+';">'+getPeriodLabel()+'</div>';
+  h+='<span id="weeks-num-el" class="weeks-num">'+state.weeks+'</span><span class="weeks-unit">w</span>';
+  h+='<span id="days-num-el" class="weeks-num" style="margin-left:6px;">'+state.days+'</span><span class="weeks-unit">d</span></div></div>';
+  h+='<div id="period-badge-el" class="period-badge" style="background:'+periodBg+';color:'+periodColor+';">'+getPeriodLabel()+'</div>';
   h+='</div>';
   h+='<div class="grid2" style="margin-bottom:14px;">';
   h+='<div><div class="label" style="margin-bottom:4px;">LMP（最終月経）</div><input type="date" value="'+state.lmp+'" onchange="updateFromLMP(this.value)"/></div>';
   h+='<div><div class="label" style="margin-bottom:4px;">EDC（出産予定日）</div><input type="date" value="'+state.edc+'" onchange="updateFromEDC(this.value)"/></div>';
   h+='</div>';
-  h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span class="label">Manual Adjust</span><span class="label" style="color:var(--text);">'+state.weeks+'w '+state.days+'d</span></div>';
-  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span class="label" style="width:12px;">W</span><input id="rangeW" type="range" min="0" max="42" value="'+state.weeks+'" oninput="state.weeks=parseInt(this.value);render();" style="flex:1;"/></div>';
-  h+='<div style="display:flex;align-items:center;gap:10px;"><span class="label" style="width:12px;">D</span><input id="rangeD" type="range" min="0" max="6" value="'+state.days+'" oninput="state.days=parseInt(this.value);render();" style="flex:1;"/></div>';
+  h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span class="label">Manual Adjust</span><span id="weeks-label-el" class="label" style="color:var(--text);">'+state.weeks+'w '+state.days+'d</span></div>';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span class="label" style="width:12px;">W</span><input id="rangeW" type="range" min="0" max="42" value="'+state.weeks+'" oninput="state.weeks=parseInt(this.value);updateWeeksDisplay();" onchange="render();" style="flex:1;"/></div>';
+  h+='<div style="display:flex;align-items:center;gap:10px;"><span class="label" style="width:12px;">D</span><input id="rangeD" type="range" min="0" max="6" value="'+state.days+'" oninput="state.days=parseInt(this.value);updateWeeksDisplay();" onchange="render();" style="flex:1;"/></div>';
   h+='</div>';
 
   h+='<div class="card">';
