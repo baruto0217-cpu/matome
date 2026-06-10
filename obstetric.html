@@ -229,6 +229,12 @@ function updateWeeksDisplay(){
   var periodText=w<22?'流産期':w<37?'早産期':'正期産';
   if(badgeEl){badgeEl.style.background=periodBg;badgeEl.style.color=periodColor;badgeEl.textContent=periodText;}
   if(labelEl)labelEl.textContent=w+'w '+d+'d';
+  // スライダー→LMP・EDC を逆算してフィールドに反映
+  calcDatesFromWeeks();
+  var lmpEl=document.getElementById('lmp-input');
+  var edcEl=document.getElementById('edc-input');
+  if(lmpEl)lmpEl.value=state.lmp;
+  if(edcEl)edcEl.value=state.edc;
   var footerPos=document.getElementById('footer-pos');
   var footer=document.getElementById('footer');
   if(footerPos){
@@ -308,25 +314,46 @@ function openDisease(id){
   },100);
 }
 
+function formatDate(d){
+  var y=d.getFullYear();
+  var m=String(d.getMonth()+1).padStart(2,'0');
+  var day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+
+function calcDatesFromWeeks(){
+  var today=new Date();today.setHours(0,0,0,0);
+  var totalDays=state.weeks*7+state.days;
+  var lmpDate=new Date(today.getTime()-totalDays*86400000);
+  var edcDate=new Date(lmpDate.getTime()+280*86400000);
+  state.lmp=formatDate(lmpDate);
+  state.edc=formatDate(edcDate);
+}
+
 function updateFromLMP(v){
-  state.lmp=v;state.edc='';
+  state.lmp=v;
   if(v){
     var today=new Date();today.setHours(0,0,0,0);
     var lmp=new Date(v);
     var diff=Math.floor((today-lmp)/86400000);
-    if(diff>=0&&diff<=300){state.weeks=Math.floor(diff/7);state.days=diff%7;}
-  }
+    if(diff>=0&&diff<=300){
+      state.weeks=Math.floor(diff/7);state.days=diff%7;
+      state.edc=formatDate(new Date(lmp.getTime()+280*86400000));
+    }else{state.edc='';}
+  }else{state.edc='';}
   render();
 }
 
 function updateFromEDC(v){
-  state.edc=v;state.lmp='';
+  state.edc=v;
   if(v){
     var today=new Date();today.setHours(0,0,0,0);
     var edc=new Date(v);
-    var diff=280-Math.floor((edc-today)/86400000);
+    var lmpDate=new Date(edc.getTime()-280*86400000);
+    state.lmp=formatDate(lmpDate);
+    var diff=Math.floor((today-lmpDate)/86400000);
     if(diff>=0&&diff<=300){state.weeks=Math.floor(diff/7);state.days=diff%7;}
-  }
+  }else{state.lmp='';}
   render();
 }
 
@@ -386,8 +413,8 @@ function renderAssessment(){
   h+='<div id="period-badge-el" class="period-badge" style="background:'+periodBg+';color:'+periodColor+';">'+getPeriodLabel()+'</div>';
   h+='</div>';
   h+='<div class="grid2" style="margin-bottom:14px;">';
-  h+='<div><div class="label" style="margin-bottom:4px;">LMP（最終月経）</div><input type="date" value="'+state.lmp+'" onchange="updateFromLMP(this.value)"/></div>';
-  h+='<div><div class="label" style="margin-bottom:4px;">EDC（出産予定日）</div><input type="date" value="'+state.edc+'" onchange="updateFromEDC(this.value)"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">LMP（最終月経）</div><input id="lmp-input" type="date" value="'+state.lmp+'" onchange="updateFromLMP(this.value)"/></div>';
+  h+='<div><div class="label" style="margin-bottom:4px;">EDC（出産予定日）</div><input id="edc-input" type="date" value="'+state.edc+'" onchange="updateFromEDC(this.value)"/></div>';
   h+='</div>';
   h+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span class="label">Manual Adjust</span><span id="weeks-label-el" class="label" style="color:var(--text);">'+state.weeks+'w '+state.days+'d</span></div>';
   h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span class="label" style="width:12px;">W</span><input id="rangeW" type="range" min="0" max="42" value="'+state.weeks+'" oninput="state.weeks=parseInt(this.value);updateWeeksDisplay();" onchange="render();" style="flex:1;"/></div>';
