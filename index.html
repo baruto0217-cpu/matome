@@ -54,6 +54,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
 .app-card.burn::before{background:linear-gradient(135deg,rgba(216,90,48,0.3),rgba(216,90,48,0.05));}
 .app-card.ecg::before{background:linear-gradient(135deg,rgba(29,110,158,0.3),rgba(29,110,158,0.05));}
 .app-card.stroke::before{background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(124,58,237,0.05));}
+.app-card.abdominal::before{background:linear-gradient(135deg,rgba(14,116,144,0.3),rgba(14,116,144,0.05));}
 .app-card:active::before{opacity:1;}
 .app-card:active{transform:scale(0.96);border-color:rgba(255,255,255,0.2);}
 
@@ -69,6 +70,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
 .app-card.burn .app-tag{background:rgba(216,90,48,0.2);color:#fb923c;}
 .app-card.ecg  .app-tag{background:rgba(29,110,158,0.2);color:#60a5fa;}
 .app-card.stroke .app-tag{background:rgba(124,58,237,0.2);color:#c084fc;}
+.app-card.abdominal .app-tag{background:rgba(14,116,144,0.2);color:#22d3ee;}
+.frame-header.abdominal{background:#0e7490;}
 
 .launcher-footer{margin-top:12px;font-size:11px;color:rgba(255,255,255,0.25);text-align:center;padding:0 16px;}
 
@@ -148,11 +151,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
       <div class="app-desc">ST診断基準・疾患別波形・12誘導マップ・所見→判断・測定プロトコール</div>
       <div class="app-tag">ECG REFERENCE</div>
     </div>
-    <div class="app-card stroke" onclick="openApp('stroke')" style="grid-column:span 2">
+    <div class="app-card stroke" onclick="openApp('stroke')">
       <div class="app-icon">🧠</div>
       <div class="app-name">脳卒中評価</div>
-      <div class="app-desc">BE-FAST・CPSS・RACE・GCS・NIHSS・mRS・専門スケール</div>
+      <div class="app-desc">BE-FAST・CPSS・RACE・GCS・NIHSS・mRS</div>
       <div class="app-tag">STROKE</div>
+    </div>
+    <div class="app-card abdominal" onclick="openApp('abdominal')">
+      <div class="app-icon">🫃</div>
+      <div class="app-name">腹痛<br>臨床推論支援</div>
+      <div class="app-desc">OPQRST・Red Flag → 鑑別50疾患</div>
+      <div class="app-tag">ABDOMINAL</div>
     </div>
   </div>
   <div class="launcher-footer">各アプリをタップして起動</div>
@@ -213,6 +222,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
   </div>
 </div>
 
+<!-- 腹痛臨床推論 -->
+<div class="app-frame" id="frame-abdominal">
+  <div class="frame-header abdominal">
+    <button class="back-btn" onclick="closeApp()">←</button>
+    <span class="frame-title">腹痛 臨床推論支援</span>
+  </div>
+  <div class="frame-body">
+    <iframe id="iframe-abdominal" src="" title="腹痛 臨床推論支援"></iframe>
+  </div>
+</div>
+
 <script>
 const APP_SRCS = {
   pediatric: 'pediatric.html',
@@ -220,6 +240,7 @@ const APP_SRCS = {
   burn: 'burn.html',
   ecg: 'ecg.html',
   stroke: 'stroke.html',
+  abdominal: 'abdominal.html',
 };
 const loaded = {};
 let current = null;
